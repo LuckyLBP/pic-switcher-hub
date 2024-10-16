@@ -1,20 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import React, { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { toast } from 'sonner';
+import { doc, updateDoc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { toast } from "sonner";
 
 interface UserDetailsModalProps {
   userId: string;
   onClose: () => void;
+  onApprove: (userId: string) => Promise<void>;
+  onDeny: (userId: string) => Promise<void>;
   onUpdate: () => void;
 }
 
-const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ userId, onClose, onUpdate }) => {
+const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
+  userId,
+  onClose,
+  onUpdate,
+}) => {
   const [user, setUser] = useState<any>(null);
   const [uploadLimit, setUploadLimit] = useState(0);
   const [backgroundLimit, setBackgroundLimit] = useState(0);
@@ -22,7 +34,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ userId, onClose, on
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const userRef = doc(db, 'users', userId);
+      const userRef = doc(db, "users", userId);
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
         const userData = userSnap.data();
@@ -36,14 +48,14 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ userId, onClose, on
   }, [userId]);
 
   const handleSave = async () => {
-    const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, { 
-      uploadLimit, 
-      backgroundLimit, 
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      uploadLimit,
+      backgroundLimit,
       isApproved,
-      status: isApproved ? 'approved' : 'pending'
+      status: isApproved ? "approved" : "pending",
     });
-    toast.success('Användarinställningar uppdaterade');
+    toast.success("Användarinställningar uppdaterade");
     onUpdate();
     onClose();
   };
