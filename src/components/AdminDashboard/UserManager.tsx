@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
 import ImageModal from '../ImageModal';
 
 const UserManager = () => {
@@ -35,7 +35,8 @@ const UserManager = () => {
 
   const handleViewUserImages = async (userId: string) => {
     setSelectedUser(userId);
-    const userDoc = await getDocs(doc(db, 'users', userId));
+    const userRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userRef);
     if (userDoc.exists()) {
       setUserImages(userDoc.data().savedImages || []);
     }

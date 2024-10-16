@@ -72,3 +72,6 @@ export const validateRegistrationLink = async (linkId: string) => {
   }
   return null;
 };
+
+
+export { getDoc };

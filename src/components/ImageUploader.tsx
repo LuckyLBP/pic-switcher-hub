@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Button } from "@/components/ui/button";
 import { auth, db, storage } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 import ImageModal from './ImageModal';
 
 interface ImageUploaderProps {
