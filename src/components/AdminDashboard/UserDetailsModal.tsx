@@ -3,8 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { Badge } from "@/components/ui/badge";
 
 interface UserDetailsModalProps {
@@ -92,18 +90,20 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onAp
             />
           </div>
         </div>
-        <DialogFooter className="flex justify-between">
-          {user.status !== 'approved' && (
-            <Button onClick={() => onApprove(user.id)} className="mr-auto">
-              Godkänn användare
-            </Button>
-          )}
-          {user.status !== 'denied' && (
-            <Button onClick={() => onDeny(user.id)} variant="destructive" className="mr-auto">
-              Neka användare
-            </Button>
-          )}
-          <Button onClick={handleSave}>Spara ändringar</Button>
+        <DialogFooter className="sm:justify-start">
+          <div className="flex flex-col sm:flex-row gap-2 w-full">
+            {user.status !== 'approved' && (
+              <Button onClick={() => onApprove(user.id)} className="w-full sm:w-auto">
+                Godkänn användare
+              </Button>
+            )}
+            {user.status !== 'denied' && (
+              <Button onClick={() => onDeny(user.id)} variant="destructive" className="w-full sm:w-auto">
+                Neka användare
+              </Button>
+            )}
+            <Button onClick={handleSave} className="w-full sm:w-auto">Spara ändringar</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
