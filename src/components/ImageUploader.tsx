@@ -2,16 +2,18 @@ import React, { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import { Button } from "@/components/ui/button";
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { saveProcessedImage, getUserProcessedImages } from '@/utils/firebaseStorage';
 import ImageModal from './ImageModal';
 import ProcessedImagesList from './ProcessedImagesList';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 interface ImageUploaderProps {
   folderId: string | undefined;
+  uploadLimit: number;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId }) => {
+const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -19,10 +21,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId }) => {
   const [savedImages, setSavedImages] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
+  const [remainingUploads, setRemainingUploads] = useState(uploadLimit);
 
   useEffect(() => {
     fetchSavedImages();
-  }, []);
+    updateRemainingUploads();
+  }, [folderId]);
 
   const fetchSavedImages = async () => {
     try {
@@ -30,6 +34,18 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId }) => {
       setSavedImages(images);
     } catch (error) {
       console.error('Error fetching saved images:', error);
+    }
+  };
+
+  const updateRemainingUploads = async () => {
+    const user = auth.currentUser;
+    if (user) {
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        setRemainingUploads(userData.uploadLimit - (userData.uploadCount || 0));
+      }
     }
   };
 
@@ -108,6 +124,20 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId }) => {
       // Save the processed image to Firebase Storage
       const savedImageUrl = await saveProcessedImage(blob, folderId || '');
       setSavedImages(prevImages => [...prevImages, savedImageUrl]);
+
+      // Update user's upload count
+      const user = auth.currentUser;
+      if (user) {
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          await updateDoc(userRef, {
+            uploadCount: (userData.uploadCount || 0) + 1
+          });
+          setRemainingUploads(prev => prev - 1);
+        }
+      }
     } catch (error) {
       console.error("Error removing background:", error);
       alert("Error processing image. Please try again.");
@@ -117,10 +147,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId }) => {
   };
 
   const handleProcessImage = () => {
-    if (uploadedImage && folderId) {
+    if (uploadedImage && folderId && remainingUploads > 0) {
       fetch(uploadedImage)
         .then(res => res.blob())
         .then(blob => removeBg(blob as File));
+    } else if (remainingUploads <= 0) {
+      alert("Du har nått din uppladdningsgräns. Kontakta administratören för att öka din gräns.");
     }
   };
 
@@ -139,38 +171,26 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId }) => {
       >
         <input {...getInputProps()} />
         {isDragActive ? (
-          <p>Drop the image here ...</p>
+          <p>Släpp bilden här ...</p>
         ) : (
-          <p>Drag 'n' drop an image here, or click to select an image</p>
+          <p>Dra och släpp en bild här, eller klicka för att välja en bild</p>
         )}
       </div>
 
       {uploadedImage && (
         <div className="space-y-4">
-          <img src={uploadedImage} alt="Uploaded" className="mx-auto max-h-64 object-cover" />
-          <div className="grid grid-cols-4 gap-4">
-            {availableBackgrounds.map((bg, index) => (
-              <div
-                key={index}
-                className={`cursor-pointer border-2 ${
-                  selectedBackground === bg ? 'border-blue-500' : 'border-transparent'
-                }`}
-                onClick={() => setSelectedBackground(bg)}
-              >
-                <img src={bg} alt={`Background ${index + 1}`} className="w-full h-24 object-cover" />
-              </div>
-            ))}
-          </div>
-          <Button onClick={handleProcessImage} disabled={isLoading || !selectedBackground}>
-            {isLoading ? 'Processing...' : 'Remove Background'}
+          <img src={uploadedImage} alt="Uppladdad" className="mx-auto max-h-64 object-cover" />
+          <Button onClick={handleProcessImage} disabled={isLoading || remainingUploads <= 0}>
+            {isLoading ? 'Bearbetar...' : 'Ta bort bakgrund'}
           </Button>
+          <p>Återstående uppladdningar: {remainingUploads}</p>
         </div>
       )}
 
       {processedImage && (
         <div>
-          <h3 className="text-lg font-semibold mb-2">Processed Image:</h3>
-          <img src={processedImage} alt="Processed" className="mx-auto max-h-64 object-cover" />
+          <h3 className="text-lg font-semibold mb-2">Bearbetad bild:</h3>
+          <img src={processedImage} alt="Bearbetad" className="mx-auto max-h-64 object-cover" />
         </div>
       )}
 
