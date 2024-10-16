@@ -33,25 +33,31 @@ interface UserData {
 }
 
 export const signUp = async (email: string, password: string, role: 'admin' | 'customer', userData: UserData) => {
-  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  const user = userCredential.user;
-  
-  let logoUrl = '';
-  if (userData.logo) {
-    const storageRef = ref(storage, `logos/${user.uid}`);
-    await uploadBytes(storageRef, userData.logo);
-    logoUrl = await getDownloadURL(storageRef);
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    
+    let logoUrl = '';
+    if (userData.logo) {
+      const storageRef = ref(storage, `logos/${user.uid}`);
+      await uploadBytes(storageRef, userData.logo);
+      logoUrl = await getDownloadURL(storageRef);
+    }
+
+    // Set custom claims (role) and additional user data in Firestore
+    await setDoc(doc(db, 'users', user.uid), {
+      email: user.email,
+      role: role,
+      ...userData,
+      logo: logoUrl
+    });
+
+    console.log("User account created and data stored in Firestore");
+    return userCredential;
+  } catch (error) {
+    console.error("Error in signUp function:", error);
+    throw error;
   }
-
-  // Set custom claims (role) and additional user data in Firestore
-  await setDoc(doc(db, 'users', user.uid), {
-    email: user.email,
-    role: role,
-    ...userData,
-    logo: logoUrl
-  });
-
-  return userCredential;
 };
 
 export const createRegistrationLink = async (email: string, companyName: string) => {
