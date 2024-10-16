@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { createRegistrationLink, db, storage } from '@/lib/firebase';
 import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
+import ImageModal from './ImageModal';
 
 const AdminDashboard = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +12,11 @@ const AdminDashboard = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [backgroundImage, setBackgroundImage] = useState<File | null>(null);
   const [backgroundImages, setBackgroundImages] = useState<string[]>([]);
+
+
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [userImages, setUserImages] = useState<string[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -63,7 +69,20 @@ const AdminDashboard = () => {
     await fetchBackgroundImages();
   };
 
+  const handleViewUserImages = async (userId: string) => {
+    setSelectedUser(userId);
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    if (userDoc.exists()) {
+      setUserImages(userDoc.data().savedImages || []);
+    }
+  };
+
+  const openImageModal = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+  };
+
   return (
+    <div className="space-y-8">
     <div className="space-y-8">
       <div className="space-y-4">
         <h2 className="text-2xl font-bold">Skapa registreringslänk</h2>
@@ -151,6 +170,56 @@ const AdminDashboard = () => {
           </tbody>
         </table>
       </div>
+
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Customer Images</h2>
+        <table className="min-w-full bg-white">
+          <thead>
+            <tr>
+              <th className="text-left p-2">Company</th>
+              <th className="text-left p-2">E-mail</th>
+              <th className="text-left p-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id}>
+                <td className="p-2">{user.companyName}</td>
+                <td className="p-2">{user.email}</td>
+                <td className="p-2">
+                  <Button onClick={() => handleViewUserImages(user.id)}>
+                    View Images
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {selectedUser && (
+        <div className="space-y-4">
+          <h3 className="text-xl font-bold">User Images</h3>
+          <div className="grid grid-cols-4 gap-4">
+            {userImages.map((imageUrl, index) => (
+              <img
+                key={index}
+                src={imageUrl}
+                alt={`User image ${index + 1}`}
+                className="w-full h-40 object-cover cursor-pointer"
+                onClick={() => openImageModal(imageUrl)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {selectedImage && (
+        <ImageModal
+          imageUrl={selectedImage}
+          onClose={() => setSelectedImage(null)}
+        />
+      )}
     </div>
   );
 };
