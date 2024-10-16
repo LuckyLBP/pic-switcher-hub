@@ -40,28 +40,28 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onAp
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{user.companyName}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-4 items-center gap-2">
             <Label htmlFor="email" className="text-right">E-post</Label>
             <Input id="email" value={user.email} readOnly className="col-span-3" />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-4 items-center gap-2">
             <Label htmlFor="contactPerson" className="text-right">Kontaktperson</Label>
             <Input id="contactPerson" value={user.contactPerson} readOnly className="col-span-3" />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-4 items-center gap-2">
             <Label htmlFor="phoneNumber" className="text-right">Telefon</Label>
             <Input id="phoneNumber" value={user.phoneNumber} readOnly className="col-span-3" />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-4 items-center gap-2">
             <Label htmlFor="status" className="text-right">Status</Label>
             <div className="col-span-3">{getStatusBadge(user.status || 'pending')}</div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-4 items-center gap-2">
             <Label htmlFor="uploadLimit" className="text-right">Uppladdningsgräns</Label>
             <Input
               id="uploadLimit"
@@ -71,7 +71,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onAp
               className="col-span-3"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-4 items-center gap-2">
             <Label htmlFor="backgroundLimit" className="text-right">Bakgrundsgräns</Label>
             <Input
               id="backgroundLimit"
@@ -81,7 +81,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onAp
               className="col-span-3"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
+          <div className="grid grid-cols-4 items-center gap-2">
             <Label htmlFor="isDisabled" className="text-right">Inaktivera konto</Label>
             <Input
               id="isDisabled"
