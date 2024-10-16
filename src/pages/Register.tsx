@@ -16,12 +16,14 @@ const Register = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [logo, setLogo] = useState<File | null>(null);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const validateLink = async () => {
       if (linkId) {
         try {
           console.log('Validating link:', linkId);
+          setIsLoading(true);
           const validData = await validateRegistrationLink(linkId);
           console.log('Validation result:', validData);
           if (validData) {
@@ -34,7 +36,11 @@ const Register = () => {
         } catch (err) {
           console.error("Error validating link:", err);
           setError('Ett fel uppstod vid validering av registreringslänken.');
+        } finally {
+          setIsLoading(false);
         }
+      } else {
+        setIsLoading(false);
       }
     };
     validateLink();
@@ -71,6 +77,10 @@ const Register = () => {
       setLogo(e.target.files[0]);
     }
   };
+
+  if (isLoading) {
+    return <div>Laddar...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">

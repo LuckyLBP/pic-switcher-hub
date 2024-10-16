@@ -95,6 +95,9 @@ export const validateRegistrationLink = async (linkId: string) => {
     return null;
   } catch (error) {
     console.error("Error validating registration link:", error);
+    if (error.code === 'permission-denied') {
+      console.error("Permission denied. Check Firestore rules and ensure they are deployed.");
+    }
     throw new Error('Ett fel uppstod vid validering av registreringslänken.');
   }
 };
