@@ -76,15 +76,20 @@ export const createRegistrationLink = async (email: string, companyName: string)
 
 export const validateRegistrationLink = async (linkId: string) => {
   try {
+    console.log('Validating registration link:', linkId);
     const linkRef = doc(db, 'registrationLinks', linkId);
     const linkDoc = await getDoc(linkRef);
+    console.log('Link document exists:', linkDoc.exists());
     if (linkDoc.exists() && !linkDoc.data().used) {
       await updateDoc(linkRef, { used: true });
-      return {
+      const data = {
         email: linkDoc.data().email,
         companyName: linkDoc.data().companyName
       };
+      console.log('Valid link data:', data);
+      return data;
     }
+    console.log('Invalid or used link');
     return null;
   } catch (error) {
     console.error("Error validating registration link:", error);

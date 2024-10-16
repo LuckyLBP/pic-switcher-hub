@@ -7,7 +7,7 @@ import { validateRegistrationLink, signUp } from '@/lib/firebase';
 import { toast } from 'sonner';
 
 const Register = () => {
-  const { linkId } = useParams();
+  const { linkId } = useParams<{ linkId: string }>();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,10 +21,13 @@ const Register = () => {
     const validateLink = async () => {
       if (linkId) {
         try {
+          console.log('Validating link:', linkId);
           const validData = await validateRegistrationLink(linkId);
+          console.log('Validation result:', validData);
           if (validData) {
             setEmail(validData.email);
             setCompanyName(validData.companyName);
+            console.log('Email set to:', validData.email);
           } else {
             setError('Ogiltig eller använd registreringslänk.');
           }
