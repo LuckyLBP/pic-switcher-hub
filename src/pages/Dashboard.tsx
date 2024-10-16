@@ -1,14 +1,28 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import AdminDashboard from '@/components/AdminDashboard';
+import { doc, getDoc } from 'firebase/firestore';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user] = useAuthState(auth);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkUserRole = async () => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists() && userDoc.data().role === 'admin') {
+          setIsAdmin(true);
+        }
+      }
+    };
+    checkUserRole();
+  }, [user]);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -22,12 +36,12 @@ const Dashboard = () => {
         <Button onClick={handleLogout}>Logga ut</Button>
       </header>
       <main className="container mx-auto mt-8 p-4">
-        {user?.email === 'admin@example.com' ? (
+        {isAdmin ? (
           <AdminDashboard />
         ) : (
           <>
-            <h2 className="text-2xl mb-4">Bildhantering</h2>
-            <p className="mb-4">Här kommer du snart att kunna ladda upp och redigera dina bilbilder.</p>
+            <h2 className="text-2xl mb-4">Välkommen, {user?.email}</h2>
+            <p className="mb-4">Här kommer du snart att kunna hantera dina bilbilder.</p>
           </>
         )}
       </main>
