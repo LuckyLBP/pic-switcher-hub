@@ -4,17 +4,26 @@ import Navigation from '@/components/Navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const CreateFolder = () => {
   const [folderName, setFolderName] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement folder creation logic
-    console.log('Creating folder:', folderName);
-    // For now, we'll just navigate back to the dashboard
-    navigate('/dashboard');
+    try {
+      const foldersCollection = collection(db, 'carFolders');
+      await addDoc(foldersCollection, {
+        name: folderName,
+        createdAt: new Date()
+      });
+      navigate('/dashboard');
+    } catch (error) {
+      console.error("Error creating folder: ", error);
+      // TODO: Add error handling UI
+    }
   };
 
   return (

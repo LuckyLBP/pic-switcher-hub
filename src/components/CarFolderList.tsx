@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Folder } from 'lucide-react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 interface CarFolder {
@@ -15,17 +15,18 @@ const CarFolderList = () => {
   const [folders, setFolders] = useState<CarFolder[]>([]);
 
   useEffect(() => {
-    const fetchFolders = async () => {
-      const foldersCollection = collection(db, 'carFolders');
-      const folderSnapshot = await getDocs(foldersCollection);
-      const folderList = folderSnapshot.docs.map(doc => ({
+    const foldersCollection = collection(db, 'carFolders');
+    const q = query(foldersCollection, orderBy('createdAt', 'desc'));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const folderList = snapshot.docs.map(doc => ({
         id: doc.id,
         name: doc.data().name,
       }));
       setFolders(folderList);
-    };
+    });
 
-    fetchFolders();
+    return () => unsubscribe();
   }, []);
 
   return (
