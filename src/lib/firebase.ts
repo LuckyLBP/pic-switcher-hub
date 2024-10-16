@@ -4,13 +4,12 @@ import { getFirestore, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const firebaseConfig = {
-  // Replace with your Firebase configuration
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyB1GktW0V6MCUaSSKzXyXYfzEwGqwu3Smo",
+  authDomain: "autoscape-c4faa.firebaseapp.com",
+  projectId: "autoscape-c4faa",
+  storageBucket: "autoscape-c4faa.appspot.com",
+  messagingSenderId: "588965615422",
+  appId: "1:588965615422:web:3b418fdc180b4046693e6f"
 };
 
 const app = initializeApp(firebaseConfig);
