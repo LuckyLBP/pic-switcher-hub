@@ -1,15 +1,14 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Navigation from '@/components/Navigation';
-import { Plus, Image, Palette } from 'lucide-react';
-import CarFolderList from '@/components/CarFolderList';
+import Navigation from "@/components/Navigation";
+import { Plus, Image, Palette } from "lucide-react";
+import CarFolderList from "@/components/CarFolderList";
 
 const Dashboard = () => {
   const navigate = useNavigate();
 
-  // TODO: Replace these with actual data from your state management or API
   const remainingImages = 50;
   const usedBackgrounds = 10;
 
@@ -27,7 +26,9 @@ const Dashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Button onClick={() => navigate('/create-folder')}>Skapa ny mapp</Button>
+              <Button onClick={() => navigate("/create-folder")}>
+                Skapa ny mapp
+              </Button>
             </CardContent>
           </Card>
           <Card>

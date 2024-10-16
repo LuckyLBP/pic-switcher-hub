@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Folder } from 'lucide-react';
-import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { toast } from 'sonner';
+import { Folder } from "lucide-react";
+import {
+  collection,
+  onSnapshot,
+  query,
+  where,
+  orderBy,
+} from "firebase/firestore";
+import { db, auth } from "@/lib/firebase";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { toast } from "sonner";
 
 interface CarFolder {
   id: string;
@@ -21,16 +27,13 @@ const CarFolderList = () => {
   useEffect(() => {
     if (!user) return;
 
-    const foldersCollection = collection(db, 'carFolders');
-    const q = query(
-      foldersCollection,
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
-    );
+    const foldersCollection = collection(db, "carFolders");
+    const q = query(foldersCollection, where("userId", "==", user.uid));
 
-    const unsubscribe = onSnapshot(q, 
+    const unsubscribe = onSnapshot(
+      q,
       (snapshot) => {
-        const folderList = snapshot.docs.map(doc => ({
+        const folderList = snapshot.docs.map((doc) => ({
           id: doc.id,
           name: doc.data().name,
         }));
@@ -54,8 +57,8 @@ const CarFolderList = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {folders.map((folder) => (
-        <Card 
-          key={folder.id} 
+        <Card
+          key={folder.id}
           className="cursor-pointer hover:shadow-lg transition-shadow"
           onClick={() => navigate(`/folder/${folder.id}`)}
         >
@@ -71,7 +74,9 @@ const CarFolderList = () => {
         </Card>
       ))}
       {folders.length === 0 && !error && (
-        <p className="col-span-3 text-center text-gray-500">Inga mappar hittades. Skapa en ny mapp för att börja.</p>
+        <p className="col-span-3 text-center text-gray-500">
+          Inga mappar hittades. Skapa en ny mapp för att börja.
+        </p>
       )}
     </div>
   );
