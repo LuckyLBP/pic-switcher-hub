@@ -8,6 +8,7 @@ import Register from "./pages/Register";
 import Gallery from "./pages/Gallery";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
+import CreateFolder from "./pages/CreateFolder";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/create-folder" element={<CreateFolder />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
