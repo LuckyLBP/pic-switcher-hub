@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createRegistrationLink, db } from '@/lib/firebase';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { createRegistrationLink, db, storage } from '@/lib/firebase';
+import { collection, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL, deleteObject, listAll } from 'firebase/storage';
 
 const AdminDashboard = () => {
   const [email, setEmail] = useState('');
   const [registrationLink, setRegistrationLink] = useState('');
   const [users, setUsers] = useState<any[]>([]);
+  const [backgroundImage, setBackgroundImage] = useState<File | null>(null);
+  const [backgroundImages, setBackgroundImages] = useState<string[]>([]);
 
   useEffect(() => {
     fetchUsers();
+    fetchBackgroundImages();
   }, []);
 
   const fetchUsers = async () => {
@@ -18,6 +22,13 @@ const AdminDashboard = () => {
     const userSnapshot = await getDocs(usersCollection);
     const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     setUsers(userList);
+  };
+
+  const fetchBackgroundImages = async () => {
+    const listRef = ref(storage, 'backgrounds');
+    const res = await listAll(listRef);
+    const urls = await Promise.all(res.items.map(itemRef => getDownloadURL(itemRef)));
+    setBackgroundImages(urls);
   };
 
   const handleCreateLink = async () => {
@@ -35,6 +46,21 @@ const AdminDashboard = () => {
     const userRef = doc(db, 'users', userId);
     await updateDoc(userRef, { uploadLimit, backgroundLimit });
     fetchUsers();
+  };
+
+  const handleBackgroundUpload = async () => {
+    if (backgroundImage) {
+      const storageRef = ref(storage, `backgrounds/${backgroundImage.name}`);
+      await uploadBytes(storageRef, backgroundImage);
+      await fetchBackgroundImages();
+      setBackgroundImage(null);
+    }
+  };
+
+  const handleBackgroundDelete = async (imageUrl: string) => {
+    const imageRef = ref(storage, imageUrl);
+    await deleteObject(imageRef);
+    await fetchBackgroundImages();
   };
 
   return (
@@ -56,6 +82,37 @@ const AdminDashboard = () => {
             <Input value={registrationLink} readOnly />
           </div>
         )}
+      </div>
+      
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Ladda upp bakgrundsbild</h2>
+        <Input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setBackgroundImage(e.target.files?.[0] || null)}
+        />
+        <Button onClick={handleBackgroundUpload} disabled={!backgroundImage}>
+          Ladda upp bakgrund
+        </Button>
+      </div>
+
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Bakgrundsbilder</h2>
+        <div className="grid grid-cols-3 gap-4">
+          {backgroundImages.map((imageUrl, index) => (
+            <div key={index} className="relative">
+              <img src={imageUrl} alt={`Background ${index + 1}`} className="w-full h-40 object-cover" />
+              <Button
+                variant="destructive"
+                size="sm"
+                className="absolute top-2 right-2"
+                onClick={() => handleBackgroundDelete(imageUrl)}
+              >
+                Ta bort
+              </Button>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="space-y-4">

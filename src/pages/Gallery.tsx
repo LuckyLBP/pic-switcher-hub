@@ -1,22 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, db } from '@/lib/firebase';
+import { auth, db, storage } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { ref, listAll, getDownloadURL } from 'firebase/storage';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-
-const backgrounds = [
-  { id: 'studio', label: 'Studio' },
-  { id: 'outdoor', label: 'Outdoor' },
-  { id: 'showroom', label: 'Showroom' },
-  { id: 'custom', label: 'Custom' },
-];
 
 const Gallery = () => {
   const [user] = useAuthState(auth);
   const [userData, setUserData] = useState<any>(null);
   const [selectedBackgrounds, setSelectedBackgrounds] = useState<string[]>([]);
+  const [availableBackgrounds, setAvailableBackgrounds] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -29,15 +24,23 @@ const Gallery = () => {
       }
     };
     fetchUserData();
+    fetchBackgrounds();
   }, [user]);
 
-  const handleBackgroundToggle = async (backgroundId: string) => {
+  const fetchBackgrounds = async () => {
+    const listRef = ref(storage, 'backgrounds');
+    const res = await listAll(listRef);
+    const urls = await Promise.all(res.items.map(itemRef => getDownloadURL(itemRef)));
+    setAvailableBackgrounds(urls);
+  };
+
+  const handleBackgroundToggle = async (backgroundUrl: string) => {
     let newSelectedBackgrounds;
-    if (selectedBackgrounds.includes(backgroundId)) {
-      newSelectedBackgrounds = selectedBackgrounds.filter(id => id !== backgroundId);
+    if (selectedBackgrounds.includes(backgroundUrl)) {
+      newSelectedBackgrounds = selectedBackgrounds.filter(url => url !== backgroundUrl);
     } else {
       if (selectedBackgrounds.length < userData.backgroundLimit) {
-        newSelectedBackgrounds = [...selectedBackgrounds, backgroundId];
+        newSelectedBackgrounds = [...selectedBackgrounds, backgroundUrl];
       } else {
         alert(`Du kan bara välja upp till ${userData.backgroundLimit} bakgrunder.`);
         return;
@@ -58,17 +61,30 @@ const Gallery = () => {
         <h1 className="text-3xl font-bold mb-4">Galleri</h1>
         {userData.isApproved ? (
           <div>
-            <h2 className="text-2xl font-bold mb-2">Välj bakgrunder</h2>
-            <p className="mb-4">Du kan välja upp till {userData.backgroundLimit} bakgrunder.</p>
-            <div className="space-y-2 mb-4">
-              {backgrounds.map((bg) => (
-                <div key={bg.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={bg.id}
-                    checked={selectedBackgrounds.includes(bg.id)}
-                    onCheckedChange={() => handleBackgroundToggle(bg.id)}
-                  />
-                  <label htmlFor={bg.id}>{bg.label}</label>
+            {selectedBackgrounds.length < userData.backgroundLimit && (
+              <>
+                <h2 className="text-2xl font-bold mb-2">Välj bakgrunder</h2>
+                <p className="mb-4">Du kan välja upp till {userData.backgroundLimit} bakgrunder. Du har valt {selectedBackgrounds.length}.</p>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  {availableBackgrounds.map((bgUrl, index) => (
+                    <div key={index} className="relative">
+                      <img src={bgUrl} alt={`Background ${index + 1}`} className="w-full h-40 object-cover" />
+                      <Checkbox
+                        id={`bg-${index}`}
+                        checked={selectedBackgrounds.includes(bgUrl)}
+                        onCheckedChange={() => handleBackgroundToggle(bgUrl)}
+                        className="absolute top-2 right-2"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+            <h2 className="text-2xl font-bold mb-2">Dina valda bakgrunder</h2>
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              {selectedBackgrounds.map((bgUrl, index) => (
+                <div key={index} className="relative">
+                  <img src={bgUrl} alt={`Selected Background ${index + 1}`} className="w-full h-40 object-cover" />
                 </div>
               ))}
             </div>
@@ -77,7 +93,7 @@ const Gallery = () => {
             {/* Add image upload component here */}
           </div>
         ) : (
-          <p>Din konto väntar på godkännande. Kontakta administratören för mer information.</p>
+          <p>Ditt konto väntar på godkännande. Kontakta administratören för mer information.</p>
         )}
       </main>
     </div>
