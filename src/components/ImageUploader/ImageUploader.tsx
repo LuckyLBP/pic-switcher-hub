@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
 import { auth, db } from '@/lib/firebase';
-import { saveProcessedImage, getUserProcessedImages } from '@/utils/firebaseStorage';
+import { getUserProcessedImages } from '@/utils/firebaseStorage';
 import ImageModal from '../ImageModal';
 import ProcessedImagesList from '../ProcessedImagesList';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import axios from 'axios';
 import ImageDropzone from './ImageDropzone';
 import BackgroundSelector from './BackgroundSelector';
 import { toast } from 'sonner';
+import { processImage } from '@/utils/imageProcessing';
 
 interface ImageUploaderProps {
   folderId: string | undefined;
@@ -17,14 +16,13 @@ interface ImageUploaderProps {
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) => {
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
-  const [processedImage, setProcessedImage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedBackground, setSelectedBackground] = useState<string | null>(null);
   const [savedImages, setSavedImages] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
   const [remainingUploads, setRemainingUploads] = useState(uploadLimit);
   const [backgrounds, setBackgrounds] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchSavedImages();
@@ -33,8 +31,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
   }, [folderId]);
 
   const fetchSavedImages = async () => {
+    if (!folderId) return;
     try {
-      const images = await getUserProcessedImages(folderId || '');
+      const images = await getUserProcessedImages(folderId);
       setSavedImages(images);
     } catch (error) {
       console.error('Error fetching saved images:', error);
@@ -62,7 +61,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
 
   const handleImageDrop = (file: File) => {
     setUploadedImage(file);
-    setProcessedImage(null);
   };
 
   const handleSelectBackground = (background: string) => {
@@ -73,48 +71,28 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
     if (uploadedImage && folderId && remainingUploads > 0 && selectedBackground) {
       setIsLoading(true);
       try {
-        const formData = new FormData();
-        formData.append("image_file", uploadedImage);
-        formData.append("size", "auto");
-        formData.append("bg_image_url", selectedBackground);
-        formData.append("add_shadow", "true");
-
-        const response = await axios.post("https://api.remove.bg/v1.0/removebg", formData, {
-          headers: { 
-            "X-Api-Key": "aay9Lpk91psu5LSvMhMtyoCk",
-            "Content-Type": "multipart/form-data"
-          },
-          responseType: 'arraybuffer'
-        });
-
-        const blob = new Blob([response.data], { type: 'image/png' });
-        const processedImageUrl = URL.createObjectURL(blob);
-        setProcessedImage(processedImageUrl);
-
-        // Save the processed image to Firebase Storage
-        const savedImageUrl = await saveProcessedImage(blob, folderId);
-        setSavedImages(prevImages => [...prevImages, savedImageUrl]);
-
-        // Update user's upload count
-        const user = auth.currentUser;
-        if (user) {
-          const userRef = doc(db, 'users', user.uid);
-          const userSnap = await getDoc(userRef);
-          if (userSnap.exists()) {
-            const userData = userSnap.data();
-            await updateDoc(userRef, {
-              uploadCount: (userData.uploadCount || 0) + 1
-            });
-            setRemainingUploads(prev => prev - 1);
+        const processedImageUrl = await processImage(uploadedImage, selectedBackground, folderId);
+        if (processedImageUrl) {
+          setSavedImages(prevImages => [...prevImages, processedImageUrl]);
+          
+          // Update user's upload count
+          const user = auth.currentUser;
+          if (user) {
+            const userRef = doc(db, 'users', user.uid);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+              const userData = userSnap.data();
+              await updateDoc(userRef, {
+                uploadCount: (userData.uploadCount || 0) + 1
+              });
+              setRemainingUploads(prev => prev - 1);
+            }
           }
         }
-
-        toast.success('Bilden har bearbetats och sparats framgångsrikt!');
-      } catch (error) {
-        console.error("Error processing image:", error);
-        toast.error("Ett fel uppstod vid bildbehandling. Försök igen.");
       } finally {
         setIsLoading(false);
+        setUploadedImage(null);
+        setSelectedBackground(null);
       }
     } else if (remainingUploads <= 0) {
       toast.error("Du har nått din uppladdningsgräns. Kontakta administratören för att öka din gräns.");
@@ -140,17 +118,14 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
             selectedBackground={selectedBackground}
             onSelectBackground={handleSelectBackground}
           />
-          <Button onClick={handleProcessImage} disabled={isLoading || remainingUploads <= 0 || !selectedBackground}>
+          <button
+            onClick={handleProcessImage}
+            disabled={isLoading || remainingUploads <= 0 || !selectedBackground}
+            className="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-300"
+          >
             {isLoading ? 'Bearbetar...' : 'Ta bort bakgrund'}
-          </Button>
+          </button>
           <p>Återstående uppladdningar: {remainingUploads}</p>
-        </div>
-      )}
-
-      {processedImage && (
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Bearbetad bild:</h3>
-          <img src={processedImage} alt="Bearbetad" className="mx-auto max-h-64 object-cover" />
         </div>
       )}
 
