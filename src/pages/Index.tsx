@@ -38,6 +38,12 @@ const Index = () => {
                 </CardHeader>
                 <CardContent>
                   <LoginForm />
+                  <div className="mt-4 text-center">
+                    <p className="text-sm text-gray-600">Har du inget konto?</p>
+                    <Button variant="link" onClick={() => navigate('/register')}>
+                      Registrera dig här
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
