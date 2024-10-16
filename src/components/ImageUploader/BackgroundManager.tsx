@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { Button } from "@/components/ui/button";
 import BackgroundSelector from './BackgroundSelector';
 
 interface BackgroundManagerProps {
@@ -10,7 +9,6 @@ interface BackgroundManagerProps {
 
 const BackgroundManager: React.FC<BackgroundManagerProps> = ({ onSelectBackground }) => {
   const [backgrounds, setBackgrounds] = useState<string[]>([]);
-  const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
 
   useEffect(() => {
     fetchBackgrounds();
@@ -28,26 +26,14 @@ const BackgroundManager: React.FC<BackgroundManagerProps> = ({ onSelectBackgroun
     }
   };
 
-  const handleSelectBackground = (background: string) => {
-    onSelectBackground(background);
-    setShowBackgroundSelector(false);
-  };
-
   return (
     <div>
-      <Button
-        onClick={() => setShowBackgroundSelector(true)}
-        className="w-full"
-      >
-        Välj bakgrund
-      </Button>
-      {showBackgroundSelector && (
-        <BackgroundSelector
-          backgrounds={backgrounds}
-          selectedBackground={null}
-          onSelectBackground={handleSelectBackground}
-        />
-      )}
+      <h3 className="text-lg font-semibold mb-2">Välj bakgrund:</h3>
+      <BackgroundSelector
+        backgrounds={backgrounds}
+        selectedBackground={null}
+        onSelectBackground={onSelectBackground}
+      />
     </div>
   );
 };
