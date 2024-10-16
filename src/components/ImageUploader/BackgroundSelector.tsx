@@ -17,8 +17,13 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ backgrounds, se
             key={background}
             onClick={() => onSelectBackground(background)}
             variant={selectedBackground === background ? "default" : "outline"}
+            className="h-24 p-0 overflow-hidden"
           >
-            {background}
+            {background === 'Ta bort bakgrund' ? (
+              <span className="text-sm">{background}</span>
+            ) : (
+              <img src={background} alt={background} className="w-full h-full object-cover" />
+            )}
           </Button>
         ))}
       </div>

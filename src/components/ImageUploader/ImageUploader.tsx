@@ -24,6 +24,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
   const [remainingUploads, setRemainingUploads] = useState(uploadLimit);
   const [backgrounds, setBackgrounds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
 
   useEffect(() => {
     fetchSavedImages();
@@ -55,17 +56,25 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
   };
 
   const fetchBackgrounds = async () => {
-    // Här skulle du hämta bakgrunder från Firebase Storage eller din API
-    // För nu använder vi dummy-data
-    setBackgrounds(['Showroom', 'Utomhus', 'Studio']);
+    const user = auth.currentUser;
+    if (user) {
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        setBackgrounds(['Ta bort bakgrund', ...(userData.selectedBackgrounds || [])]);
+      }
+    }
   };
 
   const handleImageDrop = (file: File) => {
     setUploadedImage(file);
+    setShowBackgroundSelector(false);
   };
 
   const handleSelectBackground = (background: string) => {
     setSelectedBackground(background);
+    setShowBackgroundSelector(false);
   };
 
   const handleProcessImage = async () => {
@@ -117,17 +126,25 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
       {uploadedImage && (
         <div className="space-y-4">
           <img src={URL.createObjectURL(uploadedImage)} alt="Uppladdad" className="mx-auto max-h-64 object-cover" />
-          <BackgroundSelector
-            backgrounds={backgrounds}
-            selectedBackground={selectedBackground}
-            onSelectBackground={handleSelectBackground}
-          />
+          <Button
+            onClick={() => setShowBackgroundSelector(true)}
+            className="w-full"
+          >
+            Välj bakgrund
+          </Button>
+          {showBackgroundSelector && (
+            <BackgroundSelector
+              backgrounds={backgrounds}
+              selectedBackground={selectedBackground}
+              onSelectBackground={handleSelectBackground}
+            />
+          )}
           <Button
             onClick={handleProcessImage}
             disabled={isLoading || remainingUploads <= 0 || !selectedBackground}
             className="w-full"
           >
-            {isLoading ? 'Bearbetar...' : 'Ta bort bakgrund'}
+            {isLoading ? 'Bearbetar...' : 'Bearbeta bild'}
           </Button>
           <p>Återstående uppladdningar: {remainingUploads}</p>
         </div>
