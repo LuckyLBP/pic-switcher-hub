@@ -25,10 +25,10 @@ service cloud.firestore {
       allow read: if request.auth != null;
     }
     
-    // Allow authenticated users to create and read folders
+    // Allow authenticated users to create and read only their own folders
     match /carFolders/{folderId} {
       allow create: if request.auth != null;
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
     }
     
     // Default deny

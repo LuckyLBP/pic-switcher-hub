@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Folder } from 'lucide-react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 interface CarFolder {
   id: string;
@@ -13,10 +14,17 @@ interface CarFolder {
 const CarFolderList = () => {
   const navigate = useNavigate();
   const [folders, setFolders] = useState<CarFolder[]>([]);
+  const [user] = useAuthState(auth);
 
   useEffect(() => {
+    if (!user) return;
+
     const foldersCollection = collection(db, 'carFolders');
-    const q = query(foldersCollection, orderBy('createdAt', 'desc'));
+    const q = query(
+      foldersCollection,
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const folderList = snapshot.docs.map(doc => ({
@@ -27,7 +35,7 @@ const CarFolderList = () => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
