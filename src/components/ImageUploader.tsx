@@ -76,7 +76,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) =
       reader.readAsDataURL(file);
     });
   };
-  };
 
   const removeBg = async (file: File) => {
     const formData = new FormData();
