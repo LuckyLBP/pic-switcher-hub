@@ -1,27 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 interface UserDetailsModalProps {
-  user: any;
+  userId: string;
   onClose: () => void;
   onApprove: (userId: string) => void;
   onDeny: (userId: string) => void;
   onUpdate: () => void;
 }
 
-const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onApprove, onDeny, onUpdate }) => {
-  const [uploadLimit, setUploadLimit] = useState(user.uploadLimit || 0);
-  const [backgroundLimit, setBackgroundLimit] = useState(user.backgroundLimit || 0);
-  const [isDisabled, setIsDisabled] = useState(user.isDisabled || false);
+const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ userId, onClose, onApprove, onDeny, onUpdate }) => {
+  const [user, setUser] = useState<any>(null);
+  const [uploadLimit, setUploadLimit] = useState(0);
+  const [backgroundLimit, setBackgroundLimit] = useState(0);
+  const [isDisabled, setIsDisabled] = useState(false);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const userRef = doc(db, 'users', userId);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        setUser(userData);
+        setUploadLimit(userData.uploadLimit || 0);
+        setBackgroundLimit(userData.backgroundLimit || 0);
+        setIsDisabled(userData.isDisabled || false);
+      }
+    };
+    fetchUserData();
+  }, [userId]);
 
   const handleSave = async () => {
-    const userRef = doc(db, 'users', user.id);
+    const userRef = doc(db, 'users', userId);
     await updateDoc(userRef, { uploadLimit, backgroundLimit, isDisabled });
     onUpdate();
     onClose();
@@ -37,6 +53,8 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onAp
         return <Badge variant="secondary" className="bg-yellow-500">Väntande</Badge>;
     }
   };
+
+  if (!user) return null;
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -95,12 +113,12 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onAp
         <DialogFooter className="sm:justify-start">
           <div className="flex flex-col sm:flex-row gap-2 w-full">
             {user.status !== 'approved' && (
-              <Button onClick={() => onApprove(user.id)} className="w-full sm:w-auto">
+              <Button onClick={() => onApprove(userId)} className="w-full sm:w-auto">
                 Godkänn användare
               </Button>
             )}
             {user.status !== 'denied' && (
-              <Button onClick={() => onDeny(user.id)} variant="destructive" className="w-full sm:w-auto">
+              <Button onClick={() => onDeny(userId)} variant="destructive" className="w-full sm:w-auto">
                 Neka användare
               </Button>
             )}

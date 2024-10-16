@@ -1,35 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, onSnapshot, query } from 'firebase/firestore';
 import UserDetailsModal from './UserDetailsModal';
 import { Badge } from "@/components/ui/badge";
 
 const UserManager = () => {
   const [users, setUsers] = useState<any[]>([]);
-  const [selectedUser, setSelectedUser] = useState<any | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
     const usersCollection = collection(db, 'users');
-    const userSnapshot = await getDocs(usersCollection);
-    const userList = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    setUsers(userList);
-  };
+    const q = query(usersCollection);
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const userList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setUsers(userList);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleApproveUser = async (userId: string) => {
     const userRef = doc(db, 'users', userId);
     await updateDoc(userRef, { isApproved: true, status: 'approved' });
-    fetchUsers();
   };
 
   const handleDenyUser = async (userId: string) => {
     const userRef = doc(db, 'users', userId);
     await updateDoc(userRef, { isApproved: false, status: 'denied' });
-    fetchUsers();
   };
 
   const getStatusBadge = (status: string) => {
@@ -61,7 +60,7 @@ const UserManager = () => {
               <tr key={user.id} className="hover:bg-gray-100">
                 <td 
                   className="p-2 cursor-pointer text-blue-600 hover:underline"
-                  onClick={() => setSelectedUser(user)}
+                  onClick={() => setSelectedUserId(user.id)}
                 >
                   {user.companyName}
                 </td>
@@ -69,7 +68,7 @@ const UserManager = () => {
                   {getStatusBadge(user.status || 'pending')}
                 </td>
                 <td className="p-2">
-                  {user.uploadLimit - (user.uploadedImages?.length || 0)}
+                  {user.uploadLimit - (user.uploadCount || 0)}
                 </td>
                 <td className="p-2">
                   {user.selectedBackgrounds?.length || 0} / {user.backgroundLimit}
@@ -80,13 +79,13 @@ const UserManager = () => {
         </table>
       </div>
 
-      {selectedUser && (
+      {selectedUserId && (
         <UserDetailsModal
-          user={selectedUser}
-          onClose={() => setSelectedUser(null)}
+          userId={selectedUserId}
+          onClose={() => setSelectedUserId(null)}
           onApprove={handleApproveUser}
           onDeny={handleDenyUser}
-          onUpdate={fetchUsers}
+          onUpdate={() => {}} // This is now handled by the onSnapshot
         />
       )}
     </div>
