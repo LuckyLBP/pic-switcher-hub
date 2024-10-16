@@ -8,7 +8,6 @@ import CarFolderList from "@/components/CarFolderList";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
-import BackgroundSelector from "@/components/BackgroundSelector";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -16,7 +15,6 @@ const Dashboard = () => {
   const [remainingImages, setRemainingImages] = useState(0);
   const [usedBackgrounds, setUsedBackgrounds] = useState(0);
   const [isApproved, setIsApproved] = useState(false);
-  const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -28,7 +26,6 @@ const Dashboard = () => {
           setRemainingImages(userData.uploadLimit - (userData.uploadCount || 0));
           setUsedBackgrounds(userData.selectedBackgrounds?.length || 0);
           setIsApproved(userData.isApproved || false);
-          setShowBackgroundSelector(userData.backgroundLimit > 0 && !userData.selectedBackgrounds);
         }
       }
     };
@@ -56,50 +53,44 @@ const Dashboard = () => {
       <Navigation />
       <main className="container mx-auto mt-8 p-4">
         <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-        {showBackgroundSelector ? (
-          <BackgroundSelector userId={user?.uid} />
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Plus className="mr-2" />
-                    Skapa ny
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Button onClick={() => navigate("/create-folder")}>
-                    Skapa ny mapp
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Image className="mr-2" />
-                    Antal bilder kvar
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold">{remainingImages}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Palette className="mr-2" />
-                    Antal bakgrunder använda
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-2xl font-bold">{usedBackgrounds}</p>
-                </CardContent>
-              </Card>
-            </div>
-            <CarFolderList />
-          </>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Plus className="mr-2" />
+                Skapa ny
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => navigate("/create-folder")}>
+                Skapa ny mapp
+              </Button>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Image className="mr-2" />
+                Antal bilder kvar
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{remainingImages}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Palette className="mr-2" />
+                Antal bakgrunder använda
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{usedBackgrounds}</p>
+            </CardContent>
+          </Card>
+        </div>
+        <CarFolderList />
       </main>
     </div>
   );
