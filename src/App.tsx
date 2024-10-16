@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
 import CreateFolder from "./pages/CreateFolder";
 import FolderPage from "./pages/FolderPage";
+import SelectBackgrounds from "./pages/SelectBackgrounds";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/create-folder" element={<CreateFolder />} />
           <Route path="/folder/:folderId" element={<FolderPage />} />
+          <Route path="/select-backgrounds" element={<SelectBackgrounds />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
