@@ -18,6 +18,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) =
   const [selectedBackground, setSelectedBackground] = useState<string | null>(null);
   const [savedImages, setSavedImages] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
 
   useEffect(() => {
     fetchSavedImages();
@@ -123,6 +124,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) =
     }
   };
 
+  const handleImageClick = (imageUrl: string) => {
+    setSelectedImageUrl(imageUrl);
+    setIsModalOpen(true);
+  };
+
   return (
     <div className="space-y-4">
       <div 
@@ -168,11 +174,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) =
         </div>
       )}
 
-      <ProcessedImagesList images={savedImages} onImageClick={setIsModalOpen} />
+      <ProcessedImagesList images={savedImages} onImageClick={handleImageClick} />
 
       {isModalOpen && (
         <ImageModal
-          imageUrl={processedImage || ''}
+          imageUrl={selectedImageUrl}
           onClose={() => setIsModalOpen(false)}
         />
       )}
