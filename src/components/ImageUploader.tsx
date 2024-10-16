@@ -8,10 +8,10 @@ import ImageModal from './ImageModal';
 import ProcessedImagesList from './ProcessedImagesList';
 
 interface ImageUploaderProps {
-  availableBackgrounds: string[];
+  folderId: string | undefined;
 }
 
-const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) => {
+const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId }) => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +26,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) =
 
   const fetchSavedImages = async () => {
     try {
-      const images = await getUserProcessedImages();
+      const images = await getUserProcessedImages(folderId || '');
       setSavedImages(images);
     } catch (error) {
       console.error('Error fetching saved images:', error);
@@ -106,7 +106,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) =
       setProcessedImage(processedImageUrl);
 
       // Save the processed image to Firebase Storage
-      const savedImageUrl = await saveProcessedImage(blob);
+      const savedImageUrl = await saveProcessedImage(blob, folderId || '');
       setSavedImages(prevImages => [...prevImages, savedImageUrl]);
     } catch (error) {
       console.error("Error removing background:", error);
@@ -117,7 +117,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) =
   };
 
   const handleProcessImage = () => {
-    if (uploadedImage) {
+    if (uploadedImage && folderId) {
       fetch(uploadedImage)
         .then(res => res.blob())
         .then(blob => removeBg(blob as File));

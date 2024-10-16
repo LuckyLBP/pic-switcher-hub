@@ -44,7 +44,7 @@ const CarFolderList = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Click to view images</p>
+            <p>Klicka för att visa bilder</p>
           </CardContent>
         </Card>
       ))}
