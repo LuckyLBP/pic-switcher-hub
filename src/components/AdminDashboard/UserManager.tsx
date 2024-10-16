@@ -22,8 +22,25 @@ const UserManager = () => {
 
   const handleApproveUser = async (userId: string) => {
     const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, { isApproved: true });
+    await updateDoc(userRef, { isApproved: true, status: 'approved' });
     fetchUsers();
+  };
+
+  const handleDenyUser = async (userId: string) => {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, { isApproved: false, status: 'denied' });
+    fetchUsers();
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return <Badge variant="default" className="bg-green-500">Godkänd</Badge>;
+      case 'denied':
+        return <Badge variant="destructive">Nekad</Badge>;
+      default:
+        return <Badge variant="secondary" className="bg-yellow-500">Väntande</Badge>;
+    }
   };
 
   return (
@@ -34,6 +51,8 @@ const UserManager = () => {
           <tr>
             <th className="text-left p-2">Företag</th>
             <th className="text-left p-2">Status</th>
+            <th className="text-left p-2">Bilder kvar</th>
+            <th className="text-left p-2">Valda bakgrunder</th>
           </tr>
         </thead>
         <tbody>
@@ -46,9 +65,13 @@ const UserManager = () => {
                 {user.companyName}
               </td>
               <td className="p-2">
-                <Badge variant={user.isApproved ? "default" : "destructive"}>
-                  {user.isApproved ? 'Godkänd' : 'Väntar'}
-                </Badge>
+                {getStatusBadge(user.status || 'pending')}
+              </td>
+              <td className="p-2">
+                {user.uploadLimit - (user.uploadedImages?.length || 0)}
+              </td>
+              <td className="p-2">
+                {user.selectedBackgrounds?.length || 0} / {user.backgroundLimit}
               </td>
             </tr>
           ))}
@@ -60,6 +83,7 @@ const UserManager = () => {
           user={selectedUser}
           onClose={() => setSelectedUser(null)}
           onApprove={handleApproveUser}
+          onDeny={handleDenyUser}
           onUpdate={fetchUsers}
         />
       )}

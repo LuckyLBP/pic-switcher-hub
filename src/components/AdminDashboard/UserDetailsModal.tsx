@@ -5,23 +5,37 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { Badge } from "@/components/ui/badge";
 
 interface UserDetailsModalProps {
   user: any;
   onClose: () => void;
   onApprove: (userId: string) => void;
+  onDeny: (userId: string) => void;
   onUpdate: () => void;
 }
 
-const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onApprove, onUpdate }) => {
+const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onApprove, onDeny, onUpdate }) => {
   const [uploadLimit, setUploadLimit] = useState(user.uploadLimit || 0);
   const [backgroundLimit, setBackgroundLimit] = useState(user.backgroundLimit || 0);
+  const [isDisabled, setIsDisabled] = useState(user.isDisabled || false);
 
   const handleSave = async () => {
     const userRef = doc(db, 'users', user.id);
-    await updateDoc(userRef, { uploadLimit, backgroundLimit });
+    await updateDoc(userRef, { uploadLimit, backgroundLimit, isDisabled });
     onUpdate();
     onClose();
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return <Badge variant="default" className="bg-green-500">Godkänd</Badge>;
+      case 'denied':
+        return <Badge variant="destructive">Nekad</Badge>;
+      default:
+        return <Badge variant="secondary" className="bg-yellow-500">Väntande</Badge>;
+    }
   };
 
   return (
@@ -44,6 +58,10 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onAp
             <Input id="phoneNumber" value={user.phoneNumber} readOnly className="col-span-3" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="status" className="text-right">Status</Label>
+            <div className="col-span-3">{getStatusBadge(user.status || 'pending')}</div>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="uploadLimit" className="text-right">Uppladdningsgräns</Label>
             <Input
               id="uploadLimit"
@@ -63,11 +81,26 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onAp
               className="col-span-3"
             />
           </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="isDisabled" className="text-right">Inaktivera konto</Label>
+            <Input
+              id="isDisabled"
+              type="checkbox"
+              checked={isDisabled}
+              onChange={(e) => setIsDisabled(e.target.checked)}
+              className="col-span-3"
+            />
+          </div>
         </div>
-        <DialogFooter>
-          {!user.isApproved && (
+        <DialogFooter className="flex justify-between">
+          {user.status !== 'approved' && (
             <Button onClick={() => onApprove(user.id)} className="mr-auto">
               Godkänn användare
+            </Button>
+          )}
+          {user.status !== 'denied' && (
+            <Button onClick={() => onDeny(user.id)} variant="destructive" className="mr-auto">
+              Neka användare
             </Button>
           )}
           <Button onClick={handleSave}>Spara ändringar</Button>
