@@ -77,7 +77,7 @@ export const signUp = async (
   }
 };
 
-const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:3000';
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 export const createRegistrationLink = async (email: string, companyName: string) => {
   const linkId = Math.random().toString(36).substring(2, 15);
