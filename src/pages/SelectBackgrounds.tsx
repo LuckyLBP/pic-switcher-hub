@@ -24,6 +24,7 @@ const SelectBackgrounds = () => {
         if (userSnap.exists()) {
           const userData = userSnap.data();
           setBackgroundLimit(userData.backgroundLimit || 0);
+          setSelectedBackgrounds(userData.selectedBackgrounds || []);
           
           // Fetch available backgrounds from Firebase Storage
           const backgroundsRef = ref(storage, 'backgrounds');
@@ -65,7 +66,7 @@ const SelectBackgrounds = () => {
       <Navigation />
       <main className="container mx-auto mt-8 p-4">
         <h1 className="text-3xl font-bold mb-6">Välj dina bakgrunder</h1>
-        <p className="mb-4">Du kan välja upp till {backgroundLimit} bakgrunder.</p>
+        <p className="mb-4">Du kan välja upp till {backgroundLimit} bakgrunder. Du har valt {selectedBackgrounds.length} bakgrund(er).</p>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
           {availableBackgrounds.map((bg, index) => (
             <Card 
