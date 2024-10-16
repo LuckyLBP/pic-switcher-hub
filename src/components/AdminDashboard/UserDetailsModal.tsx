@@ -45,50 +45,50 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({ user, onClose, onAp
           <DialogTitle>{user.companyName}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-2">
-            <Label htmlFor="email" className="text-right">E-post</Label>
-            <Input id="email" value={user.email} readOnly className="col-span-3" />
+          <div className="grid sm:grid-cols-4 items-center gap-2">
+            <Label htmlFor="email" className="sm:text-right">E-post</Label>
+            <Input id="email" value={user.email} readOnly className="sm:col-span-3" />
           </div>
-          <div className="grid grid-cols-4 items-center gap-2">
-            <Label htmlFor="contactPerson" className="text-right">Kontaktperson</Label>
-            <Input id="contactPerson" value={user.contactPerson} readOnly className="col-span-3" />
+          <div className="grid sm:grid-cols-4 items-center gap-2">
+            <Label htmlFor="contactPerson" className="sm:text-right">Kontaktperson</Label>
+            <Input id="contactPerson" value={user.contactPerson} readOnly className="sm:col-span-3" />
           </div>
-          <div className="grid grid-cols-4 items-center gap-2">
-            <Label htmlFor="phoneNumber" className="text-right">Telefon</Label>
-            <Input id="phoneNumber" value={user.phoneNumber} readOnly className="col-span-3" />
+          <div className="grid sm:grid-cols-4 items-center gap-2">
+            <Label htmlFor="phoneNumber" className="sm:text-right">Telefon</Label>
+            <Input id="phoneNumber" value={user.phoneNumber} readOnly className="sm:col-span-3" />
           </div>
-          <div className="grid grid-cols-4 items-center gap-2">
-            <Label htmlFor="status" className="text-right">Status</Label>
-            <div className="col-span-3">{getStatusBadge(user.status || 'pending')}</div>
+          <div className="grid sm:grid-cols-4 items-center gap-2">
+            <Label htmlFor="status" className="sm:text-right">Status</Label>
+            <div className="sm:col-span-3">{getStatusBadge(user.status || 'pending')}</div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-2">
-            <Label htmlFor="uploadLimit" className="text-right">Uppladdningsgräns</Label>
+          <div className="grid sm:grid-cols-4 items-center gap-2">
+            <Label htmlFor="uploadLimit" className="sm:text-right">Uppladdningsgräns</Label>
             <Input
               id="uploadLimit"
               type="number"
               value={uploadLimit}
               onChange={(e) => setUploadLimit(Number(e.target.value))}
-              className="col-span-3"
+              className="sm:col-span-3"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-2">
-            <Label htmlFor="backgroundLimit" className="text-right">Bakgrundsgräns</Label>
+          <div className="grid sm:grid-cols-4 items-center gap-2">
+            <Label htmlFor="backgroundLimit" className="sm:text-right">Bakgrundsgräns</Label>
             <Input
               id="backgroundLimit"
               type="number"
               value={backgroundLimit}
               onChange={(e) => setBackgroundLimit(Number(e.target.value))}
-              className="col-span-3"
+              className="sm:col-span-3"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-2">
-            <Label htmlFor="isDisabled" className="text-right">Inaktivera konto</Label>
+          <div className="grid sm:grid-cols-4 items-center gap-2">
+            <Label htmlFor="isDisabled" className="sm:text-right">Inaktivera konto</Label>
             <Input
               id="isDisabled"
               type="checkbox"
               checked={isDisabled}
               onChange={(e) => setIsDisabled(e.target.checked)}
-              className="col-span-3"
+              className="sm:col-span-3"
             />
           </div>
         </div>
