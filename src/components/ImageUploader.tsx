@@ -2,10 +2,10 @@ import React, { useCallback, useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import { Button } from "@/components/ui/button";
-import { auth, db, storage } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
+import { auth } from '@/lib/firebase';
+import { saveProcessedImage, getUserProcessedImages } from '@/utils/firebaseStorage';
 import ImageModal from './ImageModal';
+import ProcessedImagesList from './ProcessedImagesList';
 
 interface ImageUploaderProps {
   availableBackgrounds: string[];
@@ -18,22 +18,19 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) =
   const [selectedBackground, setSelectedBackground] = useState<string | null>(null);
   const [savedImages, setSavedImages] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedSavedImage, setSelectedSavedImage] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch saved images for the current user
-    const fetchSavedImages = async () => {
-      const user = auth.currentUser;
-      if (user) {
-        const userDoc = await doc(db, 'users', user.uid);
-        const userData = await getDoc(userDoc);
-        if (userData.exists()) {
-          setSavedImages(userData.data().savedImages || []);
-        }
-      }
-    };
     fetchSavedImages();
   }, []);
+
+  const fetchSavedImages = async () => {
+    try {
+      const images = await getUserProcessedImages();
+      setSavedImages(images);
+    } catch (error) {
+      console.error('Error fetching saved images:', error);
+    }
+  };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -79,12 +76,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) =
       reader.readAsDataURL(file);
     });
   };
+  };
 
   const removeBg = async (file: File) => {
     const formData = new FormData();
     formData.append("size", "auto");
     
-    // Resize the image before sending to the API
     const resizedImage = await resizeImage(file, 800, 600);
     formData.append("image_file", resizedImage, "resized_image.png");
     
@@ -92,7 +89,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) =
       formData.append("bg_image_url", selectedBackground);
     }
 
-    // Add shadow to the car
     formData.append("add_shadow", "true");
 
     try {
@@ -109,33 +105,14 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) =
       const processedImageUrl = URL.createObjectURL(blob);
       setProcessedImage(processedImageUrl);
 
-      // Save the processed image
-      await saveProcessedImage(processedImageUrl);
+      // Save the processed image to Firebase Storage
+      const savedImageUrl = await saveProcessedImage(blob);
+      setSavedImages(prevImages => [...prevImages, savedImageUrl]);
     } catch (error) {
       console.error("Error removing background:", error);
       alert("Error processing image. Please try again.");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const saveProcessedImage = async (imageUrl: string) => {
-    const user = auth.currentUser;
-    if (user) {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const imagePath = `processedImages/${user.uid}/${Date.now()}.png`;
-      const storageRef = ref(storage, imagePath);
-      await uploadBytes(storageRef, blob);
-      const downloadUrl = await getDownloadURL(storageRef);
-
-      // Update user document with new image URL
-      const userDoc = doc(db, 'users', user.uid);
-      await updateDoc(userDoc, {
-        savedImages: arrayUnion(downloadUrl)
-      });
-
-      setSavedImages(prevImages => [...prevImages, downloadUrl]);
     }
   };
 
@@ -145,11 +122,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) =
         .then(res => res.blob())
         .then(blob => removeBg(blob as File));
     }
-  };
-
-  const openModal = (imageUrl: string) => {
-    setSelectedSavedImage(imageUrl);
-    setIsModalOpen(true);
   };
 
   return (
@@ -197,26 +169,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) =
         </div>
       )}
 
-      {savedImages.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Saved Images:</h3>
-          <div className="flex flex-wrap gap-2">
-            {savedImages.map((image, index) => (
-              <img
-                key={index}
-                src={image}
-                alt={`Saved ${index + 1}`}
-                className="w-20 h-20 object-cover cursor-pointer"
-                onClick={() => openModal(image)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      <ProcessedImagesList images={savedImages} onImageClick={setIsModalOpen} />
 
-      {isModalOpen && selectedSavedImage && (
+      {isModalOpen && (
         <ImageModal
-          imageUrl={selectedSavedImage}
+          imageUrl={processedImage || ''}
           onClose={() => setIsModalOpen(false)}
         />
       )}
