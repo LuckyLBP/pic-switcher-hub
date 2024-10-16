@@ -1,16 +1,35 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import { Plus, Image, Palette } from "lucide-react";
 import CarFolderList from "@/components/CarFolderList";
+import { auth, db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [user] = useAuthState(auth);
+  const [remainingImages, setRemainingImages] = useState(0);
+  const [usedBackgrounds, setUsedBackgrounds] = useState(0);
 
-  const remainingImages = 50;
-  const usedBackgrounds = 10;
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user) {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          setRemainingImages(userData.uploadLimit - (userData.uploadCount || 0));
+          setUsedBackgrounds(userData.selectedBackgrounds?.length || 0);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
 
   return (
     <div className="min-h-screen bg-gray-100">
