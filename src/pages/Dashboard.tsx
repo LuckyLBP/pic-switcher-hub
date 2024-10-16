@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import Navigation from "@/components/Navigation";
-import { Plus, Image, Palette } from "lucide-react";
-import CarFolderList from "@/components/CarFolderList";
+import {
+  PlusIcon,
+  PhotoIcon,
+  Squares2X2Icon,
+} from "@heroicons/react/24/outline";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
+import CarFolderList from "@/components/CarFolderList";
+import SidebarNavigation from "@/components/Navigation";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -23,75 +25,70 @@ const Dashboard = () => {
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
           const userData = userSnap.data();
-          setRemainingImages(userData.uploadLimit - (userData.uploadCount || 0));
+          setRemainingImages(
+            userData.uploadLimit - (userData.uploadCount || 0)
+          );
           setUsedBackgrounds(userData.selectedBackgrounds?.length || 0);
           setIsApproved(userData.isApproved || false);
         }
       }
     };
-
     fetchUserData();
   }, [user]);
 
   if (!isApproved) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <Card className="w-96">
-          <CardHeader>
-            <CardTitle>Konto under granskning</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>Ditt konto väntar på godkännande från en administratör. Vi kommer att meddela dig när ditt konto har godkänts.</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white shadow-lg rounded-lg p-8">
+          <h2 className="text-2xl font-semibold mb-4">
+            Ditt konto behöver godkännas!
+          </h2>
+          <p>
+            Ditt konto behöver godkännas innan du kan använda appen. Kontakta
+            admin för mer information.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Navigation />
-      <main className="container mx-auto mt-8 p-4">
-        <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Plus className="mr-2" />
-                Skapa ny
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={() => navigate("/create-folder")}>
-                Skapa ny mapp
-              </Button>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Image className="mr-2" />
-                Antal bilder kvar
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{remainingImages}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Palette className="mr-2" />
-                Antal bakgrunder använda
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{usedBackgrounds}</p>
-            </CardContent>
-          </Card>
-        </div>
-        <CarFolderList />
-      </main>
+    <div className="flex">
+      <SidebarNavigation />
+      <div className="ml-64 w-full bg-gray-50 min-h-screen">
+        <main className="container mx-auto px-4 pt-20 pb-8">
+          <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div
+              className="bg-white shadow rounded-lg p-6 transform hover:scale-105 transition-transform duration-200 cursor-pointer"
+              onClick={() => navigate("/create-folder")}
+            >
+              <div className="flex items-center mb-4">
+                <PlusIcon className="h-6 w-6 text-primary mr-2" />
+                <h2 className="text-xl font-semibold">Skapa ny</h2>
+              </div>
+              <p className="text-gray-600">
+                Skapa en ny mapp för att organisera dina bilar.
+              </p>
+            </div>
+            <div className="bg-white shadow rounded-lg p-6">
+              <div className="flex items-center mb-4">
+                <PhotoIcon className="h-6 w-6 text-primary mr-2" />
+                <h2 className="text-xl font-semibold">Antal bilder kvar</h2>
+              </div>
+              <p className="text-4xl font-bold">{remainingImages}</p>
+            </div>
+            <div className="bg-white shadow rounded-lg p-6">
+              <div className="flex items-center mb-4">
+                <Squares2X2Icon className="h-6 w-6 text-primary mr-2" />
+                <h2 className="text-xl font-semibold">Antal bakgrunder</h2>
+              </div>
+              <p className="text-4xl font-bold">{usedBackgrounds}</p>
+            </div>
+          </div>
+          <CarFolderList />
+        </main>
+      </div>
     </div>
   );
 };

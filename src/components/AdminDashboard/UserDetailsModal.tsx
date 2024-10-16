@@ -1,116 +1,97 @@
 import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { doc, updateDoc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { toast } from "sonner";
 
 interface UserDetailsModalProps {
   userId: string;
   onClose: () => void;
-  onApprove: (userId: string) => Promise<void>;
-  onDeny: (userId: string) => Promise<void>;
-  onUpdate: () => void;
+  onApprove: (userId: string) => void;
+  onDeny: (userId: string) => void;
 }
 
 const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
   userId,
   onClose,
-  onUpdate,
+  onApprove,
+  onDeny,
 }) => {
   const [user, setUser] = useState<any>(null);
   const [uploadLimit, setUploadLimit] = useState(0);
   const [backgroundLimit, setBackgroundLimit] = useState(0);
-  const [isApproved, setIsApproved] = useState(false);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const userRef = doc(db, "users", userId);
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        const userData = userSnap.data();
+    const fetchUser = async () => {
+      const userDoc = await getDoc(doc(db, "users", userId));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
         setUser(userData);
         setUploadLimit(userData.uploadLimit || 0);
         setBackgroundLimit(userData.backgroundLimit || 0);
-        setIsApproved(userData.isApproved || false);
       }
     };
-    fetchUserData();
+    fetchUser();
   }, [userId]);
 
-  const handleSave = async () => {
-    const userRef = doc(db, "users", userId);
-    await updateDoc(userRef, {
-      uploadLimit,
-      backgroundLimit,
-      isApproved,
-      status: isApproved ? "approved" : "pending",
-    });
-    toast.success("Användarinställningar uppdaterade");
-    onUpdate();
-    onClose();
+  const handleUpdate = async () => {
+    if (userId) {
+      const userRef = doc(db, "users", userId);
+      await updateDoc(userRef, {
+        uploadLimit: Number(uploadLimit),
+        backgroundLimit: Number(backgroundLimit),
+      });
+      alert("Bilduppladdningar och Antal Bakgrunder uppdaterades");
+    }
   };
 
   if (!user) return null;
 
   return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{user.companyName}</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="uploadLimit" className="text-right">
-              Uppladdningsgräns
-            </Label>
-            <Input
-              id="uploadLimit"
-              type="number"
-              value={uploadLimit}
-              onChange={(e) => setUploadLimit(Number(e.target.value))}
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="backgroundLimit" className="text-right">
-              Bakgrundsgräns
-            </Label>
-            <Input
-              id="backgroundLimit"
-              type="number"
-              value={backgroundLimit}
-              onChange={(e) => setBackgroundLimit(Number(e.target.value))}
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="isApproved" className="text-right">
-              Godkänd
-            </Label>
-            <Input
-              id="isApproved"
-              type="checkbox"
-              checked={isApproved}
-              onChange={(e) => setIsApproved(e.target.checked)}
-              className="col-span-3"
-            />
-          </div>
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+        <h2 className="text-xl font-bold mb-4">{user.companyName}</h2>
+        <p>
+          <strong>E-post:</strong> {user.email}
+        </p>
+        <p>
+          <strong>Status:</strong> {user.status}
+        </p>
+        <div className="mt-4">
+          <Label htmlFor="uploadLimit">Bilduppladdningar</Label>
+          <Input
+            id="uploadLimit"
+            type="number"
+            value={uploadLimit}
+            onChange={(e) => setUploadLimit(Number(e.target.value))}
+          />
         </div>
-        <DialogFooter>
-          <Button onClick={handleSave}>Spara ändringar</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <div className="mt-4">
+          <Label htmlFor="backgroundLimit">Antal Bakgrunder</Label>
+          <Input
+            id="backgroundLimit"
+            type="number"
+            value={backgroundLimit}
+            onChange={(e) => setBackgroundLimit(Number(e.target.value))}
+          />
+        </div>
+
+        <div className="mt-6 flex justify-end space-x-4">
+          <Button variant="secondary" onClick={onClose}>
+            Stäng
+          </Button>
+          <Button variant="destructive" onClick={() => onDeny(userId)}>
+            Neka
+          </Button>
+          {/* Hide "Godkänn" button if the user is already approved */}
+          {user.status !== "approved" && (
+            <Button onClick={() => onApprove(userId)}>Godkänn</Button>
+          )}
+          <Button onClick={handleUpdate}>Uppdatera</Button>
+        </div>
+      </div>
+    </div>
   );
 };
 

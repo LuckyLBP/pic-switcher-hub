@@ -6,8 +6,8 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-8">
       <RegistrationLinkCreator />
-      <BackgroundImageManager />
       <UserManager />
+      <BackgroundImageManager />
     </div>
   );
 };
