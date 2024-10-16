@@ -20,9 +20,9 @@ const BackgroundSelector: React.FC<BackgroundSelectorProps> = ({ backgrounds, se
             className="h-24 p-0 overflow-hidden"
           >
             {background === 'Ta bort bakgrund' ? (
-              <span className="text-sm">{background}</span>
+              <span className="text-sm">Ta bort bakgrund</span>
             ) : (
-              <img src={background} alt={background} className="w-full h-full object-cover" />
+              <img src={background} alt="Bakgrund" className="w-full h-full object-cover" />
             )}
           </Button>
         ))}

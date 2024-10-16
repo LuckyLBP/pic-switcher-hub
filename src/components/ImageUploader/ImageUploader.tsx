@@ -5,7 +5,7 @@ import ImageModal from '../ImageModal';
 import ProcessedImagesList from '../ProcessedImagesList';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import ImageDropzone from './ImageDropzone';
-import BackgroundSelector from './BackgroundSelector';
+import BackgroundManager from './BackgroundManager';
 import { toast } from 'sonner';
 import { processImage } from '@/utils/imageProcessing';
 import { Button } from "@/components/ui/button";
@@ -22,14 +22,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string>('');
   const [remainingUploads, setRemainingUploads] = useState(uploadLimit);
-  const [backgrounds, setBackgrounds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showBackgroundSelector, setShowBackgroundSelector] = useState(false);
 
   useEffect(() => {
     fetchSavedImages();
     updateRemainingUploads();
-    fetchBackgrounds();
   }, [folderId]);
 
   const fetchSavedImages = async () => {
@@ -55,26 +52,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
     }
   };
 
-  const fetchBackgrounds = async () => {
-    const user = auth.currentUser;
-    if (user) {
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists()) {
-        const userData = userSnap.data();
-        setBackgrounds(['Ta bort bakgrund', ...(userData.selectedBackgrounds || [])]);
-      }
-    }
-  };
-
   const handleImageDrop = (file: File) => {
     setUploadedImage(file);
-    setShowBackgroundSelector(false);
+    setSelectedBackground(null);
   };
 
   const handleSelectBackground = (background: string) => {
     setSelectedBackground(background);
-    setShowBackgroundSelector(false);
   };
 
   const handleProcessImage = async () => {
@@ -126,19 +110,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
       {uploadedImage && (
         <div className="space-y-4">
           <img src={URL.createObjectURL(uploadedImage)} alt="Uppladdad" className="mx-auto max-h-64 object-cover" />
-          <Button
-            onClick={() => setShowBackgroundSelector(true)}
-            className="w-full"
-          >
-            Välj bakgrund
-          </Button>
-          {showBackgroundSelector && (
-            <BackgroundSelector
-              backgrounds={backgrounds}
-              selectedBackground={selectedBackground}
-              onSelectBackground={handleSelectBackground}
-            />
-          )}
+          <BackgroundManager onSelectBackground={handleSelectBackground} />
           <Button
             onClick={handleProcessImage}
             disabled={isLoading || remainingUploads <= 0 || !selectedBackground}
