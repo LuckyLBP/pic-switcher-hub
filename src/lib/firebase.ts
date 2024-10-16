@@ -78,9 +78,11 @@ export const validateRegistrationLink = async (linkId: string) => {
   try {
     console.log('Validating registration link:', linkId);
     const linkRef = doc(db, 'registrationLinks', linkId);
+    console.log('Attempting to get document');
     const linkDoc = await getDoc(linkRef);
-    console.log('Link document exists:', linkDoc.exists());
+    console.log('Document retrieved, exists:', linkDoc.exists());
     if (linkDoc.exists() && !linkDoc.data().used) {
+      console.log('Link is valid and unused');
       await updateDoc(linkRef, { used: true });
       const data = {
         email: linkDoc.data().email,

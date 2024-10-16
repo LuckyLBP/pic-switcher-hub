@@ -19,9 +19,10 @@ service cloud.firestore {
       allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
     }
     
-    // Allow creation and read of registration links (for admin use only)
+    // Allow reading of registration links without authentication
     match /registrationLinks/{linkId} {
-      allow create, read: if request.auth != null && isAdmin();
+      allow read: if true;
+      allow create: if request.auth != null && isAdmin();
     }
     
     // Allow authenticated users to create and read only their own folders
