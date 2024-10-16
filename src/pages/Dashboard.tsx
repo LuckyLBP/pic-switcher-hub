@@ -6,6 +6,7 @@ import { auth, db } from '@/lib/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import AdminDashboard from '@/components/AdminDashboard';
 import { doc, getDoc } from 'firebase/firestore';
+import Navigation from '@/components/Navigation';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -35,6 +36,7 @@ const Dashboard = () => {
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <Button onClick={handleLogout}>Logga ut</Button>
       </header>
+      <Navigation />
       <main className="container mx-auto mt-8 p-4">
         {isAdmin ? (
           <AdminDashboard />
