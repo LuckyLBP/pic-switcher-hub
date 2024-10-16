@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
+import { db, auth, storage } from '@/lib/firebase';
+import { ref, listAll, getDownloadURL } from 'firebase/storage';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { toast } from 'sonner';
 import Navigation from '@/components/Navigation';
@@ -16,7 +17,7 @@ const SelectBackgrounds = () => {
   const [backgroundLimit, setBackgroundLimit] = useState(0);
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchUserDataAndBackgrounds = async () => {
       if (user) {
         const userRef = doc(db, 'users', user.uid);
         const userSnap = await getDoc(userRef);
@@ -24,15 +25,20 @@ const SelectBackgrounds = () => {
           const userData = userSnap.data();
           setBackgroundLimit(userData.backgroundLimit || 0);
           
-          // Fetch available backgrounds from your storage or database
-          // This is a placeholder, replace with actual fetching logic
-          const backgrounds = ['bg1.jpg', 'bg2.jpg', 'bg3.jpg', 'bg4.jpg', 'bg5.jpg'];
-          setAvailableBackgrounds(backgrounds);
+          // Fetch available backgrounds from Firebase Storage
+          const backgroundsRef = ref(storage, 'backgrounds');
+          const backgroundsList = await listAll(backgroundsRef);
+          const backgroundUrls = await Promise.all(
+            backgroundsList.items.map(async (item) => {
+              return await getDownloadURL(item);
+            })
+          );
+          setAvailableBackgrounds(backgroundUrls);
         }
       }
     };
 
-    fetchUserData();
+    fetchUserDataAndBackgrounds();
   }, [user]);
 
   const handleBackgroundSelect = (background: string) => {
