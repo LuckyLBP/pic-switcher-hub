@@ -23,16 +23,31 @@ export const processImage = async (
     });
 
     const blob = new Blob([response.data], { type: 'image/png' });
+
     const savedImageUrl = await saveProcessedImage(blob, folderId);
+    
     toast.success('Bilden har bearbetats och sparats framgångsrikt!');
     return savedImageUrl;
+
   } catch (error) {
     console.error("Error processing image:", error);
-    if (axios.isAxiosError(error) && error.response?.status === 403) {
-      toast.error("Åtkomst nekad till bildbehandlingstjänsten. Kontrollera API-nyckeln.");
+
+    if (axios.isAxiosError(error)) {
+      const statusCode = error.response?.status;
+
+      if (statusCode === 403) {
+        toast.error("Åtkomst nekad till bildbehandlingstjänsten. Kontrollera API-nyckeln.");
+      } else if (statusCode === 400) {
+        toast.error("Ogiltig begäran till bildbehandlingstjänsten. Kontrollera filformat eller storlek.");
+      } else if (statusCode === 429) {
+        toast.error("Begäran nekad på grund av API-begränsningar. Försök igen senare.");
+      } else {
+        toast.error("Ett fel uppstod vid bildbehandling. Försök igen.");
+      }
     } else {
-      toast.error("Ett fel uppstod vid bildbehandling. Försök igen.");
+      toast.error("Ett oväntat fel inträffade. Försök igen.");
     }
+
     return null;
   }
 };
