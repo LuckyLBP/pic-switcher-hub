@@ -6,6 +6,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref, listAll, getDownloadURL } from 'firebase/storage';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Check } from 'lucide-react'; // Import the Check icon
 
 const Gallery = () => {
   const [user] = useAuthState(auth);
@@ -67,14 +68,20 @@ const Gallery = () => {
                 <p className="mb-4">Du kan välja upp till {userData.backgroundLimit} bakgrunder. Du har valt {selectedBackgrounds.length}.</p>
                 <div className="grid grid-cols-3 gap-4 mb-4">
                   {availableBackgrounds.map((bgUrl, index) => (
-                    <div key={index} className="relative">
+                    <div key={index} className="relative group">
                       <img src={bgUrl} alt={`Background ${index + 1}`} className="w-full h-40 object-cover" />
-                      <Checkbox
-                        id={`bg-${index}`}
-                        checked={selectedBackgrounds.includes(bgUrl)}
-                        onCheckedChange={() => handleBackgroundToggle(bgUrl)}
-                        className="absolute top-2 right-2"
-                      />
+                      <div 
+                        className={`absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 transition-opacity ${
+                          selectedBackgrounds.includes(bgUrl) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                        }`}
+                        onClick={() => handleBackgroundToggle(bgUrl)}
+                      >
+                        <Check 
+                          className={`text-white w-10 h-10 ${
+                            selectedBackgrounds.includes(bgUrl) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                          }`} 
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -85,6 +92,9 @@ const Gallery = () => {
               {selectedBackgrounds.map((bgUrl, index) => (
                 <div key={index} className="relative">
                   <img src={bgUrl} alt={`Selected Background ${index + 1}`} className="w-full h-40 object-cover" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                    <Check className="text-white w-10 h-10" />
+                  </div>
                 </div>
               ))}
             </div>
