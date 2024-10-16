@@ -2,11 +2,17 @@ import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const ImageUploader = () => {
+interface ImageUploaderProps {
+  availableBackgrounds: string[];
+}
+
+const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedBackground, setSelectedBackground] = useState<string | null>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -20,6 +26,10 @@ const ImageUploader = () => {
     const formData = new FormData();
     formData.append("size", "auto");
     formData.append("image_file", file);
+    
+    if (selectedBackground) {
+      formData.append("bg_image_url", selectedBackground);
+    }
 
     try {
       setIsLoading(true);
@@ -68,7 +78,19 @@ const ImageUploader = () => {
       {uploadedImage && (
         <div className="space-y-4">
           <img src={uploadedImage} alt="Uploaded" className="mx-auto max-h-64 object-cover" />
-          <Button onClick={handleProcessImage} disabled={isLoading}>
+          <Select onValueChange={(value) => setSelectedBackground(value)}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a background" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableBackgrounds.map((bg, index) => (
+                <SelectItem key={index} value={bg}>
+                  Background {index + 1}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={handleProcessImage} disabled={isLoading || !selectedBackground}>
             {isLoading ? 'Processing...' : 'Remove Background'}
           </Button>
         </div>

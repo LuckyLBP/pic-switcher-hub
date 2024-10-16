@@ -99,7 +99,7 @@ const Gallery = () => {
             {isConfirmed && (
               <>
                 <p className="mb-4">Dina bakgrunder har sparats. Du kan nu ladda upp bilder.</p>
-                <ImageUploader />
+                <ImageUploader availableBackgrounds={selectedBackgrounds} />
               </>
             )}
           </div>
