@@ -77,16 +77,18 @@ export const signUp = async (
   }
 };
 
+const BASE_URL = process.env.REACT_APP_BASE_URL || 'http://localhost:3000';
 
 export const createRegistrationLink = async (email: string, companyName: string) => {
   const linkId = Math.random().toString(36).substring(2, 15);
   await setDoc(doc(db, 'registrationLinks', linkId), {
     email: email,
     companyName: companyName,
-    used: false,
+    used: false
   });
-  return `${window.location.origin}/register/${linkId}`;
+  return `${BASE_URL}/register/${linkId}`;
 };
+
 
 export const validateRegistrationLink = async (linkId: string) => {
   try {
