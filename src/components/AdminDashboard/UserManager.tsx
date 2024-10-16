@@ -3,12 +3,15 @@ import { Button } from "@/components/ui/button";
 import { db } from '@/lib/firebase';
 import { collection, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
 import ImageModal from '../ImageModal';
+import LimitsModal from './LimitsModal';
 
 const UserManager = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [userImages, setUserImages] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isLimitsModalOpen, setIsLimitsModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -27,10 +30,17 @@ const UserManager = () => {
     fetchUsers();
   };
 
-  const handleSetLimits = async (userId: string, uploadLimit: number, backgroundLimit: number) => {
-    const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, { uploadLimit, backgroundLimit });
-    fetchUsers();
+  const handleSetLimits = (user: any) => {
+    setCurrentUser(user);
+    setIsLimitsModalOpen(true);
+  };
+
+  const handleSaveLimits = async (uploadLimit: number, backgroundLimit: number) => {
+    if (currentUser) {
+      const userRef = doc(db, 'users', currentUser.id);
+      await updateDoc(userRef, { uploadLimit, backgroundLimit });
+      fetchUsers();
+    }
   };
 
   const handleViewUserImages = async (userId: string) => {
@@ -74,7 +84,7 @@ const UserManager = () => {
                     Godkänn
                   </Button>
                 )}
-                <Button onClick={() => handleSetLimits(user.id, 10, 5)}>
+                <Button onClick={() => handleSetLimits(user)}>
                   Sätt gränser
                 </Button>
                 <Button onClick={() => handleViewUserImages(user.id)}>
@@ -109,6 +119,14 @@ const UserManager = () => {
           onClose={() => setSelectedImage(null)}
         />
       )}
+
+      <LimitsModal
+        isOpen={isLimitsModalOpen}
+        onClose={() => setIsLimitsModalOpen(false)}
+        onSave={handleSaveLimits}
+        currentUploadLimit={currentUser?.uploadLimit || 0}
+        currentBackgroundLimit={currentUser?.backgroundLimit || 0}
+      />
     </div>
   );
 };
