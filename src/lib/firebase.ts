@@ -33,6 +33,10 @@ interface UserData {
 }
 
 export const signUp = async (email: string, password: string, role: 'admin' | 'customer', userData: UserData) => {
+  if (!email || !password) {
+    throw new Error('E-postadress och lösenord krävs.');
+  }
+
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
@@ -54,9 +58,9 @@ export const signUp = async (email: string, password: string, role: 'admin' | 'c
 
     console.log("User account created and data stored in Firestore");
     return userCredential;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in signUp function:", error);
-    throw error;
+    throw new Error(error.message || 'Registreringen misslyckades. Försök igen.');
   }
 };
 
@@ -71,16 +75,21 @@ export const createRegistrationLink = async (email: string, companyName: string)
 };
 
 export const validateRegistrationLink = async (linkId: string) => {
-  const linkRef = doc(db, 'registrationLinks', linkId);
-  const linkDoc = await getDoc(linkRef);
-  if (linkDoc.exists() && !linkDoc.data().used) {
-    await updateDoc(linkRef, { used: true });
-    return {
-      email: linkDoc.data().email,
-      companyName: linkDoc.data().companyName
-    };
+  try {
+    const linkRef = doc(db, 'registrationLinks', linkId);
+    const linkDoc = await getDoc(linkRef);
+    if (linkDoc.exists() && !linkDoc.data().used) {
+      await updateDoc(linkRef, { used: true });
+      return {
+        email: linkDoc.data().email,
+        companyName: linkDoc.data().companyName
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error validating registration link:", error);
+    throw new Error('Ett fel uppstod vid validering av registreringslänken.');
   }
-  return null;
 };
 
 export { getDoc };
