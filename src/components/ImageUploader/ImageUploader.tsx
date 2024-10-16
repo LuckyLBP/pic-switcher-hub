@@ -8,6 +8,7 @@ import ImageDropzone from './ImageDropzone';
 import BackgroundSelector from './BackgroundSelector';
 import { toast } from 'sonner';
 import { processImage } from '@/utils/imageProcessing';
+import { Button } from "@/components/ui/button";
 
 interface ImageUploaderProps {
   folderId: string | undefined;
@@ -36,7 +37,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
       const images = await getUserProcessedImages(folderId);
       setSavedImages(images);
     } catch (error) {
-      console.error('Error fetching saved images:', error);
+      console.error('Fel vid hämtning av sparade bilder:', error);
       toast.error('Kunde inte hämta sparade bilder. Försök igen senare.');
     }
   };
@@ -54,9 +55,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
   };
 
   const fetchBackgrounds = async () => {
-    // Fetch backgrounds from Firestore or your API
-    // For now, we'll use dummy data
-    setBackgrounds(['Showroom', 'Outdoor', 'Studio']);
+    // Här skulle du hämta bakgrunder från Firebase Storage eller din API
+    // För nu använder vi dummy-data
+    setBackgrounds(['Showroom', 'Utomhus', 'Studio']);
   };
 
   const handleImageDrop = (file: File) => {
@@ -75,7 +76,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
         if (processedImageUrl) {
           setSavedImages(prevImages => [...prevImages, processedImageUrl]);
           
-          // Update user's upload count
           const user = auth.currentUser;
           if (user) {
             const userRef = doc(db, 'users', user.uid);
@@ -88,7 +88,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
               setRemainingUploads(prev => prev - 1);
             }
           }
+          toast.success('Bilden har bearbetats och sparats!');
         }
+      } catch (error) {
+        console.error('Fel vid bildbehandling:', error);
+        toast.error('Ett fel uppstod vid bildbehandling. Försök igen.');
       } finally {
         setIsLoading(false);
         setUploadedImage(null);
@@ -118,13 +122,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
             selectedBackground={selectedBackground}
             onSelectBackground={handleSelectBackground}
           />
-          <button
+          <Button
             onClick={handleProcessImage}
             disabled={isLoading || remainingUploads <= 0 || !selectedBackground}
-            className="bg-blue-500 text-white px-4 py-2 rounded disabled:bg-gray-300"
+            className="w-full"
           >
             {isLoading ? 'Bearbetar...' : 'Ta bort bakgrund'}
-          </button>
+          </Button>
           <p>Återstående uppladdningar: {remainingUploads}</p>
         </div>
       )}
