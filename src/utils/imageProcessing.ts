@@ -28,7 +28,11 @@ export const processImage = async (
     return savedImageUrl;
   } catch (error) {
     console.error("Error processing image:", error);
-    toast.error("Ett fel uppstod vid bildbehandling. Försök igen.");
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      toast.error("Åtkomst nekad till bildbehandlingstjänsten. Kontrollera API-nyckeln.");
+    } else {
+      toast.error("Ett fel uppstod vid bildbehandling. Försök igen.");
+    }
     return null;
   }
 };
