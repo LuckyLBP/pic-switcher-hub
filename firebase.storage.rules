@@ -2,21 +2,32 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow read access to all users
-    match /{document=**} {
-      allow read: if true;
+    // Function to check if the user is an admin
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
-    
-    // Allow users to create and update their own user document
+
+    // Allow read access to user's own document and admin access to all
     match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
       allow create: if request.auth != null && request.auth.uid == userId;
       allow update: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Allow creation of registration links (for admin use)
+    // Allow users to read and write their own processed images
+    match /processedImages/{userId}/{document=**} {
+      allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
+    
+    // Allow creation of registration links (for admin use only)
     match /registrationLinks/{linkId} {
-      allow create: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-      allow read: if true;
+      allow create: if request.auth != null && isAdmin();
+      allow read: if request.auth != null;
+    }
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
