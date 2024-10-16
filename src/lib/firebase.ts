@@ -113,4 +113,22 @@ export const validateRegistrationLink = async (linkId: string) => {
   }
 };
 
+export const updateUserApprovalStatus = async (userId: string, isApproved: boolean) => {
+  const userRef = doc(db, 'users', userId);
+  await updateDoc(userRef, { 
+    isApproved, 
+    status: isApproved ? 'approved' : 'pending'
+  });
+};
+
+export const updateUserBackgroundLimit = async (userId: string, backgroundLimit: number) => {
+  const userRef = doc(db, 'users', userId);
+  await updateDoc(userRef, { backgroundLimit });
+};
+
+export const updateUserSelectedBackgrounds = async (userId: string, selectedBackgrounds: string[]) => {
+  const userRef = doc(db, 'users', userId);
+  await updateDoc(userRef, { selectedBackgrounds });
+};
+
 export { getDoc };
