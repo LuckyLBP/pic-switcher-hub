@@ -1,41 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { validateRegistrationLink, signUp } from '@/lib/firebase';
-import { toast } from 'sonner';
+import { validateRegistrationLink, signUp } from "@/lib/firebase";
+import { toast } from "sonner";
 
 const Register = () => {
   const { linkId } = useParams<{ linkId: string }>();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [companyName, setCompanyName] = useState('');
-  const [contactPerson, setContactPerson] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [contactPerson, setContactPerson] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [logo, setLogo] = useState<File | null>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const validateLink = async () => {
       if (linkId) {
         try {
-          console.log('Validating link:', linkId);
+          console.log("Validating link:", linkId);
           setIsLoading(true);
           const validData = await validateRegistrationLink(linkId);
-          console.log('Validation result:', validData);
+          console.log("Validation result:", validData);
           if (validData) {
             setEmail(validData.email);
             setCompanyName(validData.companyName);
-            console.log('Email set to:', validData.email);
+            console.log("Email set to:", validData.email);
           } else {
-            setError('Ogiltig eller använd registreringslänk.');
+            setError("Ogiltig eller använd registreringslänk.");
           }
         } catch (err) {
           console.error("Error validating link:", err);
-          setError('Ett fel uppstod vid validering av registreringslänken.');
+          setError("Ett fel uppstod vid validering av registreringslänken.");
         } finally {
           setIsLoading(false);
         }
@@ -48,13 +48,13 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     if (!email || !password || !companyName || !contactPerson || !phoneNumber) {
-      setError('Vänligen fyll i alla obligatoriska fält.');
+      setError("Vänligen fyll i alla obligatoriska fält.");
       return;
     }
     try {
-      await signUp(email, password, 'customer', {
+      await signUp(email, password, "customer", {
         companyName,
         contactPerson,
         phoneNumber,
@@ -63,18 +63,13 @@ const Register = () => {
         uploadLimit: 0,
         backgroundLimit: 0,
         selectedBackgrounds: [],
+        linkId: linkId,
       });
-      toast.success('Registrering lyckades!');
-      navigate('/dashboard');
+      toast.success("Registrering lyckades!");
+      navigate("/dashboard");
     } catch (err: any) {
       console.error("Error in signUp function:", err);
-      setError(err.message || 'Registreringen misslyckades. Försök igen.');
-    }
-  };
-
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setLogo(e.target.files[0]);
+      setError(err.message || "Registreringen misslyckades. Försök igen.");
     }
   };
 
@@ -139,16 +134,9 @@ const Register = () => {
               required
             />
           </div>
-          <div>
-            <Label htmlFor="logo">Företagslogotyp (PNG)</Label>
-            <Input
-              id="logo"
-              type="file"
-              accept=".png"
-              onChange={handleLogoUpload}
-            />
-          </div>
-          <Button type="submit" className="w-full">Registrera</Button>
+          <Button type="submit" className="w-full">
+            Registrera
+          </Button>
         </form>
       </div>
     </div>

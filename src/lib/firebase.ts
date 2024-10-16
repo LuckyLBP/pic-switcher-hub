@@ -32,7 +32,12 @@ interface UserData {
   selectedBackgrounds: string[];
 }
 
-export const signUp = async (email: string, password: string, role: 'admin' | 'customer', userData: UserData) => {
+export const signUp = async (
+  email: string,
+  password: string,
+  role: 'admin' | 'customer',
+  userData: UserData & { linkId?: string }
+) => {
   if (!email || !password) {
     throw new Error('E-postadress och lösenord krävs.');
   }
@@ -40,36 +45,45 @@ export const signUp = async (email: string, password: string, role: 'admin' | 'c
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-    
-    let logoUrl = '';
-    if (userData.logo) {
-      const storageRef = ref(storage, `logos/${user.uid}`);
-      await uploadBytes(storageRef, userData.logo);
-      logoUrl = await getDownloadURL(storageRef);
-    }
 
-    // Set custom claims (role) and additional user data in Firestore
+    // Wait for the authentication state to be established
+    await new Promise<void>((resolve) => {
+      const unsubscribe = auth.onAuthStateChanged((authUser) => {
+        if (authUser && authUser.uid === user.uid) {
+          unsubscribe();
+          resolve();
+        }
+      });
+    });
+
+    // Proceed with Firestore operations after authentication is confirmed
     await setDoc(doc(db, 'users', user.uid), {
       email: user.email,
       role: role,
       ...userData,
-      logo: logoUrl
     });
 
-    console.log("User account created and data stored in Firestore");
+    if (userData.linkId) {
+      const linkRef = doc(db, 'registrationLinks', userData.linkId);
+      console.log('Updating registration link:', userData.linkId, { used: true });
+      await updateDoc(linkRef, { used: true });
+    }
+
+    console.log('User account created and data stored in Firestore');
     return userCredential;
   } catch (error: any) {
-    console.error("Error in signUp function:", error);
+    console.error('Error in signUp function:', error);
     throw new Error(error.message || 'Registreringen misslyckades. Försök igen.');
   }
 };
+
 
 export const createRegistrationLink = async (email: string, companyName: string) => {
   const linkId = Math.random().toString(36).substring(2, 15);
   await setDoc(doc(db, 'registrationLinks', linkId), {
     email: email,
     companyName: companyName,
-    used: false
+    used: false,
   });
   return `${window.location.origin}/register/${linkId}`;
 };
@@ -83,10 +97,10 @@ export const validateRegistrationLink = async (linkId: string) => {
     console.log('Document retrieved, exists:', linkDoc.exists());
     if (linkDoc.exists() && !linkDoc.data().used) {
       console.log('Link is valid and unused');
-      await updateDoc(linkRef, { used: true });
       const data = {
         email: linkDoc.data().email,
-        companyName: linkDoc.data().companyName
+        companyName: linkDoc.data().companyName,
+        linkId: linkId // Pass the linkId for later use
       };
       console.log('Valid link data:', data);
       return data;
@@ -95,9 +109,6 @@ export const validateRegistrationLink = async (linkId: string) => {
     return null;
   } catch (error) {
     console.error("Error validating registration link:", error);
-    if (error.code === 'permission-denied') {
-      console.error("Permission denied. Check Firestore rules and ensure they are deployed.");
-    }
     throw new Error('Ett fel uppstod vid validering av registreringslänken.');
   }
 };
