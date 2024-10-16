@@ -5,19 +5,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { collection, addDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 const CreateFolder = () => {
   const [folderName, setFolderName] = useState('');
   const navigate = useNavigate();
+  const [user] = useAuthState(auth);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      console.error("User not authenticated");
+      return;
+    }
     try {
       const foldersCollection = collection(db, 'carFolders');
       await addDoc(foldersCollection, {
         name: folderName,
-        createdAt: new Date()
+        createdAt: new Date(),
+        userId: user.uid
       });
       navigate('/dashboard');
     } catch (error) {
@@ -33,7 +40,7 @@ const CreateFolder = () => {
         <h1 className="text-3xl font-bold mb-6">Skapa ny mapp</h1>
         <form onSubmit={handleSubmit} className="max-w-md mx-auto">
           <div className="mb-4">
-            <Label htmlFor="folderName">Mapp namn</Label>
+            <Label htmlFor="folderName">Mappnamn</Label>
             <Input
               id="folderName"
               value={folderName}
