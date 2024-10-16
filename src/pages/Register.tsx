@@ -2,15 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { validateRegistrationLink, signUp } from '@/lib/firebase';
-
-const backgrounds = [
-  { id: 'studio', label: 'Studio' },
-  { id: 'outdoor', label: 'Outdoor' },
-  { id: 'showroom', label: 'Showroom' },
-  { id: 'custom', label: 'Custom' },
-];
 
 const Register = () => {
   const { linkId } = useParams();
@@ -20,9 +12,8 @@ const Register = () => {
   const [companyName, setCompanyName] = useState('');
   const [contactPerson, setContactPerson] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [selectedBackgrounds, setSelectedBackgrounds] = useState<string[]>([]);
+  const [logo, setLogo] = useState<File | null>(null);
   const [error, setError] = useState('');
-  const [step, setStep] = useState(1);
 
   useEffect(() => {
     const validateLink = async () => {
@@ -40,30 +31,27 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (step === 1) {
-      setStep(2);
-    } else {
-      try {
-        await signUp(email, password, 'customer', {
-          companyName,
-          contactPerson,
-          phoneNumber,
-          selectedBackgrounds,
-          canUploadPictures: false,
-        });
-        navigate('/dashboard');
-      } catch (err) {
-        setError('Registreringen misslyckades. Försök igen.');
-      }
+    try {
+      await signUp(email, password, 'customer', {
+        companyName,
+        contactPerson,
+        phoneNumber,
+        logo,
+        isApproved: false,
+        uploadLimit: 0,
+        backgroundLimit: 0,
+        selectedBackgrounds: [],
+      });
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Registreringen misslyckades. Försök igen.');
     }
   };
 
-  const handleBackgroundToggle = (backgroundId: string) => {
-    setSelectedBackgrounds(prev =>
-      prev.includes(backgroundId)
-        ? prev.filter(id => id !== backgroundId)
-        : [...prev, backgroundId]
-    );
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setLogo(e.target.files[0]);
+    }
   };
 
   return (
@@ -72,63 +60,55 @@ const Register = () => {
         <h2 className="text-2xl font-bold mb-4">Registrera dig</h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {step === 1 ? (
-            <>
-              <Input
-                type="email"
-                placeholder="E-postadress"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                readOnly={!!linkId}
-              />
-              <Input
-                type="password"
-                placeholder="Lösenord"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <Input
-                type="text"
-                placeholder="Företagsnamn"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                required
-              />
-              <Input
-                type="text"
-                placeholder="Kontaktperson"
-                value={contactPerson}
-                onChange={(e) => setContactPerson(e.target.value)}
-                required
-              />
-              <Input
-                type="tel"
-                placeholder="Telefonnummer"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                required
-              />
-            </>
-          ) : (
-            <div className="space-y-2">
-              <h3 className="font-semibold">Välj bakgrunder:</h3>
-              {backgrounds.map((bg) => (
-                <div key={bg.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={bg.id}
-                    checked={selectedBackgrounds.includes(bg.id)}
-                    onCheckedChange={() => handleBackgroundToggle(bg.id)}
-                  />
-                  <label htmlFor={bg.id}>{bg.label}</label>
-                </div>
-              ))}
-            </div>
-          )}
-          <Button type="submit" className="w-full">
-            {step === 1 ? 'Nästa' : 'Registrera'}
-          </Button>
+          <Input
+            type="email"
+            placeholder="E-postadress"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            readOnly={!!linkId}
+          />
+          <Input
+            type="password"
+            placeholder="Lösenord"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <Input
+            type="text"
+            placeholder="Företagsnamn"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            required
+          />
+          <Input
+            type="text"
+            placeholder="Kontaktperson"
+            value={contactPerson}
+            onChange={(e) => setContactPerson(e.target.value)}
+            required
+          />
+          <Input
+            type="tel"
+            placeholder="Telefonnummer"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            required
+          />
+          <div>
+            <label htmlFor="logo" className="block text-sm font-medium text-gray-700">
+              Företagslogotyp (PNG)
+            </label>
+            <Input
+              id="logo"
+              type="file"
+              accept=".png"
+              onChange={handleLogoUpload}
+              required
+            />
+          </div>
+          <Button type="submit" className="w-full">Registrera</Button>
         </form>
       </div>
     </div>

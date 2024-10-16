@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const firebaseConfig = {
   // Replace with your Firebase configuration
@@ -15,6 +16,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app);
 
 export const signIn = (email: string, password: string) => {
   return signInWithEmailAndPassword(auth, email, password);
@@ -24,19 +26,30 @@ interface UserData {
   companyName: string;
   contactPerson: string;
   phoneNumber: string;
+  logo: File | null;
+  isApproved: boolean;
+  uploadLimit: number;
+  backgroundLimit: number;
   selectedBackgrounds: string[];
-  canUploadPictures: boolean;
 }
 
 export const signUp = async (email: string, password: string, role: 'admin' | 'customer', userData: UserData) => {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
   
+  let logoUrl = '';
+  if (userData.logo) {
+    const storageRef = ref(storage, `logos/${user.uid}`);
+    await uploadBytes(storageRef, userData.logo);
+    logoUrl = await getDownloadURL(storageRef);
+  }
+
   // Set custom claims (role) and additional user data in Firestore
   await setDoc(doc(db, 'users', user.uid), {
     email: user.email,
     role: role,
-    ...userData
+    ...userData,
+    logo: logoUrl
   });
 
   return userCredential;

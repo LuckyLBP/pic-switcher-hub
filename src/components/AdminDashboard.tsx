@@ -25,10 +25,16 @@ const AdminDashboard = () => {
     setRegistrationLink(link);
   };
 
-  const handleToggleUpload = async (userId: string, currentStatus: boolean) => {
+  const handleApproveUser = async (userId: string) => {
     const userRef = doc(db, 'users', userId);
-    await updateDoc(userRef, { canUploadPictures: !currentStatus });
-    fetchUsers(); // Refresh the user list
+    await updateDoc(userRef, { isApproved: true });
+    fetchUsers();
+  };
+
+  const handleSetLimits = async (userId: string, uploadLimit: number, backgroundLimit: number) => {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, { uploadLimit, backgroundLimit });
+    fetchUsers();
   };
 
   return (
@@ -59,8 +65,10 @@ const AdminDashboard = () => {
             <tr>
               <th className="text-left p-2">Företag</th>
               <th className="text-left p-2">E-post</th>
-              <th className="text-left p-2">Kan ladda upp bilder</th>
-              <th className="text-left p-2">Åtgärd</th>
+              <th className="text-left p-2">Status</th>
+              <th className="text-left p-2">Uppladdningsgräns</th>
+              <th className="text-left p-2">Bakgrundsgräns</th>
+              <th className="text-left p-2">Åtgärder</th>
             </tr>
           </thead>
           <tbody>
@@ -68,10 +76,17 @@ const AdminDashboard = () => {
               <tr key={user.id}>
                 <td className="p-2">{user.companyName}</td>
                 <td className="p-2">{user.email}</td>
-                <td className="p-2">{user.canUploadPictures ? 'Ja' : 'Nej'}</td>
+                <td className="p-2">{user.isApproved ? 'Godkänd' : 'Väntar'}</td>
+                <td className="p-2">{user.uploadLimit}</td>
+                <td className="p-2">{user.backgroundLimit}</td>
                 <td className="p-2">
-                  <Button onClick={() => handleToggleUpload(user.id, user.canUploadPictures)}>
-                    {user.canUploadPictures ? 'Inaktivera' : 'Aktivera'} uppladdning
+                  {!user.isApproved && (
+                    <Button onClick={() => handleApproveUser(user.id)}>
+                      Godkänn
+                    </Button>
+                  )}
+                  <Button onClick={() => handleSetLimits(user.id, 10, 5)}>
+                    Sätt gränser
                   </Button>
                 </td>
               </tr>
