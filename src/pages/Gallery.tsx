@@ -5,14 +5,14 @@ import { auth, db, storage } from '@/lib/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref, listAll, getDownloadURL } from 'firebase/storage';
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Check } from 'lucide-react'; // Import the Check icon
+import { Check } from 'lucide-react';
 
 const Gallery = () => {
   const [user] = useAuthState(auth);
   const [userData, setUserData] = useState<any>(null);
   const [selectedBackgrounds, setSelectedBackgrounds] = useState<string[]>([]);
   const [availableBackgrounds, setAvailableBackgrounds] = useState<string[]>([]);
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -36,6 +36,7 @@ const Gallery = () => {
   };
 
   const handleBackgroundToggle = async (backgroundUrl: string) => {
+    if (isConfirmed) return; // Prevent changes after confirmation
     let newSelectedBackgrounds;
     if (selectedBackgrounds.includes(backgroundUrl)) {
       newSelectedBackgrounds = selectedBackgrounds.filter(url => url !== backgroundUrl);
@@ -48,7 +49,11 @@ const Gallery = () => {
       }
     }
     setSelectedBackgrounds(newSelectedBackgrounds);
-    await updateDoc(doc(db, 'users', user.uid), { selectedBackgrounds: newSelectedBackgrounds });
+  };
+
+  const handleConfirm = async () => {
+    await updateDoc(doc(db, 'users', user.uid), { selectedBackgrounds });
+    setIsConfirmed(true);
   };
 
   if (!userData) {
@@ -62,7 +67,7 @@ const Gallery = () => {
         <h1 className="text-3xl font-bold mb-4">Galleri</h1>
         {userData.isApproved ? (
           <div>
-            {selectedBackgrounds.length < userData.backgroundLimit && (
+            {!isConfirmed && selectedBackgrounds.length < userData.backgroundLimit && (
               <>
                 <h2 className="text-2xl font-bold mb-2">Välj bakgrunder</h2>
                 <p className="mb-4">Du kan välja upp till {userData.backgroundLimit} bakgrunder. Du har valt {selectedBackgrounds.length}.</p>
@@ -87,17 +92,12 @@ const Gallery = () => {
                 </div>
               </>
             )}
-            <h2 className="text-2xl font-bold mb-2">Dina valda bakgrunder</h2>
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              {selectedBackgrounds.map((bgUrl, index) => (
-                <div key={index} className="relative">
-                  <img src={bgUrl} alt={`Selected Background ${index + 1}`} className="w-full h-40 object-cover" />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <Check className="text-white w-10 h-10" />
-                  </div>
-                </div>
-              ))}
-            </div>
+            {!isConfirmed && selectedBackgrounds.length > 0 && (
+              <Button onClick={handleConfirm} className="mb-4">Bekräfta val</Button>
+            )}
+            {isConfirmed && (
+              <p className="mb-4">Dina bakgrunder har sparats. Du kan nu ladda upp bilder.</p>
+            )}
             <p className="mb-4">Du kan ladda upp totalt {userData.uploadLimit} bilder.</p>
             <Button>Ladda upp bild</Button>
             {/* Add image upload component here */}
