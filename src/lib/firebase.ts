@@ -24,9 +24,11 @@ interface UserData {
   companyName: string;
   contactPerson: string;
   phoneNumber: string;
+  selectedBackgrounds: string[];
+  canUploadPictures: boolean;
 }
 
-export const signUp = async (email: string, password: string, role: 'admin' | 'customer', userData?: UserData) => {
+export const signUp = async (email: string, password: string, role: 'admin' | 'customer', userData: UserData) => {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
   
