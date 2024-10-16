@@ -18,9 +18,10 @@ const Register = () => {
   useEffect(() => {
     const validateLink = async () => {
       if (linkId) {
-        const validEmail = await validateRegistrationLink(linkId);
-        if (validEmail) {
-          setEmail(validEmail);
+        const validData = await validateRegistrationLink(linkId);
+        if (validData) {
+          setEmail(validData.email);
+          setCompanyName(validData.companyName);
         } else {
           setError('Ogiltig eller använd registreringslänk.');
         }

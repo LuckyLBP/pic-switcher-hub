@@ -46,7 +46,7 @@ const UserManager = () => {
                 {user.companyName}
               </td>
               <td className="p-2">
-                <Badge variant={user.isApproved ? "success" : "destructive"}>
+                <Badge variant={user.isApproved ? "default" : "destructive"}>
                   {user.isApproved ? 'Godkänd' : 'Väntar'}
                 </Badge>
               </td>
