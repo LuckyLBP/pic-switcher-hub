@@ -9,6 +9,9 @@ const Register = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [contactPerson, setContactPerson] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -28,7 +31,11 @@ const Register = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await signUp(email, password, 'customer');
+      await signUp(email, password, 'customer', {
+        companyName,
+        contactPerson,
+        phoneNumber
+      });
       navigate('/dashboard');
     } catch (err) {
       setError('Registreringen misslyckades. Försök igen.');
@@ -54,6 +61,27 @@ const Register = () => {
             placeholder="Lösenord"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <Input
+            type="text"
+            placeholder="Företagsnamn"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            required
+          />
+          <Input
+            type="text"
+            placeholder="Kontaktperson"
+            value={contactPerson}
+            onChange={(e) => setContactPerson(e.target.value)}
+            required
+          />
+          <Input
+            type="tel"
+            placeholder="Telefonnummer"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
             required
           />
           <Button type="submit" className="w-full">Registrera</Button>

@@ -20,14 +20,21 @@ export const signIn = (email: string, password: string) => {
   return signInWithEmailAndPassword(auth, email, password);
 };
 
-export const signUp = async (email: string, password: string, role: 'admin' | 'customer') => {
+interface UserData {
+  companyName: string;
+  contactPerson: string;
+  phoneNumber: string;
+}
+
+export const signUp = async (email: string, password: string, role: 'admin' | 'customer', userData?: UserData) => {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password);
   const user = userCredential.user;
   
-  // Set custom claims (role) in Firestore
+  // Set custom claims (role) and additional user data in Firestore
   await setDoc(doc(db, 'users', user.uid), {
     email: user.email,
-    role: role
+    role: role,
+    ...userData
   });
 
   return userCredential;
