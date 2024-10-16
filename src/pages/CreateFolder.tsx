@@ -4,9 +4,10 @@ import Navigation from '@/components/Navigation';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { toast } from 'sonner';
 
 const CreateFolder = () => {
   const [folderName, setFolderName] = useState('');
@@ -21,15 +22,28 @@ const CreateFolder = () => {
     }
     try {
       const foldersCollection = collection(db, 'carFolders');
+      
+      // Check if this is the user's first folder
+      const userFoldersQuery = query(foldersCollection, where("userId", "==", user.uid));
+      const userFoldersSnapshot = await getDocs(userFoldersQuery);
+      const isFirstFolder = userFoldersSnapshot.empty;
+
       await addDoc(foldersCollection, {
         name: folderName,
         createdAt: new Date(),
         userId: user.uid
       });
-      navigate('/dashboard');
+
+      if (isFirstFolder) {
+        toast.success('Första mappen skapad! Välj nu dina bakgrunder.');
+        navigate('/select-backgrounds');
+      } else {
+        toast.success('Mapp skapad');
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.error("Error creating folder: ", error);
-      // TODO: Add error handling UI
+      toast.error('Ett fel uppstod när mappen skulle skapas');
     }
   };
 
