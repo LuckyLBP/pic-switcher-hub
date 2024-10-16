@@ -6,6 +6,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref, listAll, getDownloadURL } from 'firebase/storage';
 import { Button } from "@/components/ui/button";
 import { Check } from 'lucide-react';
+import ImageUploader from '@/components/ImageUploader';
 
 const Gallery = () => {
   const [user] = useAuthState(auth);
@@ -65,7 +66,7 @@ const Gallery = () => {
       <Navigation />
       <main className="container mx-auto mt-8 p-4">
         <h1 className="text-3xl font-bold mb-4">Galleri</h1>
-        {userData.isApproved ? (
+        {userData?.isApproved ? (
           <div>
             {!isConfirmed && selectedBackgrounds.length < userData.backgroundLimit && (
               <>
@@ -96,11 +97,11 @@ const Gallery = () => {
               <Button onClick={handleConfirm} className="mb-4">Bekräfta val</Button>
             )}
             {isConfirmed && (
-              <p className="mb-4">Dina bakgrunder har sparats. Du kan nu ladda upp bilder.</p>
+              <>
+                <p className="mb-4">Dina bakgrunder har sparats. Du kan nu ladda upp bilder.</p>
+                <ImageUploader />
+              </>
             )}
-            <p className="mb-4">Du kan ladda upp totalt {userData.uploadLimit} bilder.</p>
-            <Button>Ladda upp bild</Button>
-            {/* Add image upload component here */}
           </div>
         ) : (
           <p>Ditt konto väntar på godkännande. Kontakta administratören för mer information.</p>
