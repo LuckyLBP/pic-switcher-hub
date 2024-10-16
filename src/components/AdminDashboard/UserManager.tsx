@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
-import ImageModal from '../ImageModal';
-import LimitsModal from './LimitsModal';
+import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import UserDetailsModal from './UserDetailsModal';
+import { Badge } from "@/components/ui/badge";
 
 const UserManager = () => {
   const [users, setUsers] = useState<any[]>([]);
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const [userImages, setUserImages] = useState<string[]>([]);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [isLimitsModalOpen, setIsLimitsModalOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<any | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -30,32 +26,6 @@ const UserManager = () => {
     fetchUsers();
   };
 
-  const handleSetLimits = (user: any) => {
-    setCurrentUser(user);
-    setIsLimitsModalOpen(true);
-  };
-
-  const handleSaveLimits = async (uploadLimit: number, backgroundLimit: number) => {
-    if (currentUser) {
-      const userRef = doc(db, 'users', currentUser.id);
-      await updateDoc(userRef, { uploadLimit, backgroundLimit });
-      fetchUsers();
-    }
-  };
-
-  const handleViewUserImages = async (userId: string) => {
-    setSelectedUser(userId);
-    const userRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userRef);
-    if (userDoc.exists()) {
-      setUserImages(userDoc.data().savedImages || []);
-    }
-  };
-
-  const openImageModal = (imageUrl: string) => {
-    setSelectedImage(imageUrl);
-  };
-
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">Hantera användare</h2>
@@ -63,33 +33,22 @@ const UserManager = () => {
         <thead>
           <tr>
             <th className="text-left p-2">Företag</th>
-            <th className="text-left p-2">E-post</th>
             <th className="text-left p-2">Status</th>
-            <th className="text-left p-2">Uppladdningsgräns</th>
-            <th className="text-left p-2">Bakgrundsgräns</th>
-            <th className="text-left p-2">Åtgärder</th>
           </tr>
         </thead>
         <tbody>
           {users.map((user) => (
-            <tr key={user.id}>
-              <td className="p-2">{user.companyName}</td>
-              <td className="p-2">{user.email}</td>
-              <td className="p-2">{user.isApproved ? 'Godkänd' : 'Väntar'}</td>
-              <td className="p-2">{user.uploadLimit}</td>
-              <td className="p-2">{user.backgroundLimit}</td>
+            <tr key={user.id} className="hover:bg-gray-100">
+              <td 
+                className="p-2 cursor-pointer text-blue-600 hover:underline"
+                onClick={() => setSelectedUser(user)}
+              >
+                {user.companyName}
+              </td>
               <td className="p-2">
-                {!user.isApproved && (
-                  <Button onClick={() => handleApproveUser(user.id)}>
-                    Godkänn
-                  </Button>
-                )}
-                <Button onClick={() => handleSetLimits(user)}>
-                  Sätt gränser
-                </Button>
-                <Button onClick={() => handleViewUserImages(user.id)}>
-                  Visa bilder
-                </Button>
+                <Badge variant={user.isApproved ? "success" : "destructive"}>
+                  {user.isApproved ? 'Godkänd' : 'Väntar'}
+                </Badge>
               </td>
             </tr>
           ))}
@@ -97,36 +56,13 @@ const UserManager = () => {
       </table>
 
       {selectedUser && (
-        <div className="space-y-4">
-          <h3 className="text-xl font-bold">Användarbilder</h3>
-          <div className="grid grid-cols-4 gap-4">
-            {userImages.map((imageUrl, index) => (
-              <img
-                key={index}
-                src={imageUrl}
-                alt={`User image ${index + 1}`}
-                className="w-full h-40 object-cover cursor-pointer"
-                onClick={() => openImageModal(imageUrl)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {selectedImage && (
-        <ImageModal
-          imageUrl={selectedImage}
-          onClose={() => setSelectedImage(null)}
+        <UserDetailsModal
+          user={selectedUser}
+          onClose={() => setSelectedUser(null)}
+          onApprove={handleApproveUser}
+          onUpdate={fetchUsers}
         />
       )}
-
-      <LimitsModal
-        isOpen={isLimitsModalOpen}
-        onClose={() => setIsLimitsModalOpen(false)}
-        onSave={handleSaveLimits}
-        currentUploadLimit={currentUser?.uploadLimit || 0}
-        currentBackgroundLimit={currentUser?.backgroundLimit || 0}
-      />
     </div>
   );
 };

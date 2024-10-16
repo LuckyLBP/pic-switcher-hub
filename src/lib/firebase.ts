@@ -54,10 +54,11 @@ export const signUp = async (email: string, password: string, role: 'admin' | 'c
   return userCredential;
 };
 
-export const createRegistrationLink = async (email: string) => {
+export const createRegistrationLink = async (email: string, companyName: string) => {
   const linkId = Math.random().toString(36).substring(2, 15);
   await setDoc(doc(db, 'registrationLinks', linkId), {
     email: email,
+    companyName: companyName,
     used: false
   });
   return `${window.location.origin}/register/${linkId}`;
@@ -68,10 +69,12 @@ export const validateRegistrationLink = async (linkId: string) => {
   const linkDoc = await getDoc(linkRef);
   if (linkDoc.exists() && !linkDoc.data().used) {
     await updateDoc(linkRef, { used: true });
-    return linkDoc.data().email;
+    return {
+      email: linkDoc.data().email,
+      companyName: linkDoc.data().companyName
+    };
   }
   return null;
 };
-
 
 export { getDoc };

@@ -5,10 +5,11 @@ import { createRegistrationLink } from '@/lib/firebase';
 
 const RegistrationLinkCreator = () => {
   const [email, setEmail] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [registrationLink, setRegistrationLink] = useState('');
 
   const handleCreateLink = async () => {
-    const link = await createRegistrationLink(email);
+    const link = await createRegistrationLink(email, companyName);
     setRegistrationLink(link);
   };
 
@@ -21,6 +22,12 @@ const RegistrationLinkCreator = () => {
           placeholder="Kundens e-postadress"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+        />
+        <Input
+          type="text"
+          placeholder="Företagsnamn"
+          value={companyName}
+          onChange={(e) => setCompanyName(e.target.value)}
         />
         <Button onClick={handleCreateLink}>Skapa länk</Button>
       </div>
