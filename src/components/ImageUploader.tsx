@@ -2,7 +2,6 @@ import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import axios from 'axios';
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ImageUploaderProps {
   availableBackgrounds: string[];
@@ -78,18 +77,19 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ availableBackgrounds }) =
       {uploadedImage && (
         <div className="space-y-4">
           <img src={uploadedImage} alt="Uploaded" className="mx-auto max-h-64 object-cover" />
-          <Select onValueChange={(value) => setSelectedBackground(value)}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a background" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableBackgrounds.map((bg, index) => (
-                <SelectItem key={index} value={bg}>
-                  Background {index + 1}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="grid grid-cols-4 gap-4">
+            {availableBackgrounds.map((bg, index) => (
+              <div
+                key={index}
+                className={`cursor-pointer border-2 ${
+                  selectedBackground === bg ? 'border-blue-500' : 'border-transparent'
+                }`}
+                onClick={() => setSelectedBackground(bg)}
+              >
+                <img src={bg} alt={`Background ${index + 1}`} className="w-full h-24 object-cover" />
+              </div>
+            ))}
+          </div>
           <Button onClick={handleProcessImage} disabled={isLoading || !selectedBackground}>
             {isLoading ? 'Processing...' : 'Remove Background'}
           </Button>
