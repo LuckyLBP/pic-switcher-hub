@@ -77,18 +77,16 @@ export const signUp = async (
   }
 };
 
-const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 export const createRegistrationLink = async (email: string, companyName: string) => {
   const linkId = Math.random().toString(36).substring(2, 15);
   await setDoc(doc(db, 'registrationLinks', linkId), {
     email: email,
     companyName: companyName,
-    used: false
+    used: false,
   });
-  return `${BASE_URL}/register/${linkId}`;
+  return `https://bilappen.vercel.app/register/${linkId}`;
 };
-
 
 export const validateRegistrationLink = async (linkId: string) => {
   try {
