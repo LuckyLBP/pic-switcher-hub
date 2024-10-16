@@ -8,6 +8,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import axios from 'axios';
 import ImageDropzone from './ImageDropzone';
 import BackgroundSelector from './BackgroundSelector';
+import { toast } from 'sonner';
 
 interface ImageUploaderProps {
   folderId: string | undefined;
@@ -37,6 +38,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
       setSavedImages(images);
     } catch (error) {
       console.error('Error fetching saved images:', error);
+      toast.error('Kunde inte hämta sparade bilder. Försök igen senare.');
     }
   };
 
@@ -106,16 +108,18 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ folderId, uploadLimit }) 
             setRemainingUploads(prev => prev - 1);
           }
         }
+
+        toast.success('Bilden har bearbetats och sparats framgångsrikt!');
       } catch (error) {
         console.error("Error processing image:", error);
-        alert("Ett fel uppstod vid bildbehandling. Försök igen.");
+        toast.error("Ett fel uppstod vid bildbehandling. Försök igen.");
       } finally {
         setIsLoading(false);
       }
     } else if (remainingUploads <= 0) {
-      alert("Du har nått din uppladdningsgräns. Kontakta administratören för att öka din gräns.");
+      toast.error("Du har nått din uppladdningsgräns. Kontakta administratören för att öka din gräns.");
     } else if (!selectedBackground) {
-      alert("Välj en bakgrund innan du bearbetar bilden.");
+      toast.error("Välj en bakgrund innan du bearbetar bilden.");
     }
   };
 
