@@ -62,7 +62,7 @@ const UserManager = () => {
             <tr>
               <th className="text-left p-3 border-b">Företag</th>
               <th className="text-left p-3 border-b">Status</th>
-              <th className="text-left p-3 border-b">Bilder kvar</th>
+              <th className="text-left p-3 border-b">Poäng kvar:</th>
               <th className="text-left p-3 border-b">Valda bakgrunder</th>
             </tr>
           </thead>

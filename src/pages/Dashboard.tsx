@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  PlusIcon,
-  PhotoIcon,
-  Squares2X2Icon,
-} from "@heroicons/react/24/outline";
+import { PlusIcon, Squares2X2Icon } from "@heroicons/react/24/outline";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
 import CarFolderList from "@/components/CarFolderList";
 import SidebarNavigation from "@/components/Navigation";
+import { Star } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -17,6 +14,7 @@ const Dashboard = () => {
   const [remainingImages, setRemainingImages] = useState(0);
   const [usedBackgrounds, setUsedBackgrounds] = useState(0);
   const [isApproved, setIsApproved] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -31,10 +29,40 @@ const Dashboard = () => {
           setUsedBackgrounds(userData.selectedBackgrounds?.length || 0);
           setIsApproved(userData.isApproved || false);
         }
+        setLoading(false);
       }
     };
     fetchUserData();
   }, [user]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex items-center justify-center">
+          <svg
+            className="animate-spin h-10 w-10 text-gray-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            ></path>
+          </svg>
+        </div>
+      </div>
+    );
+  }
 
   if (!isApproved) {
     return (
@@ -73,8 +101,8 @@ const Dashboard = () => {
             </div>
             <div className="bg-white shadow rounded-lg p-6">
               <div className="flex items-center mb-4">
-                <PhotoIcon className="h-6 w-6 text-primary mr-2" />
-                <h2 className="text-xl font-semibold">Antal bilder kvar</h2>
+                <Star className="h-6 w-6 text-primary mr-2" />
+                <h2 className="text-xl font-semibold">Antal poäng kvar</h2>
               </div>
               <p className="text-4xl font-bold">{remainingImages}</p>
             </div>

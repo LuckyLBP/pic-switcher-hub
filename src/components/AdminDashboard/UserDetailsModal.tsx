@@ -35,6 +35,7 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
     fetchUser();
   }, [userId]);
 
+  // Handle updating limits in Firestore
   const handleUpdate = async () => {
     if (userId) {
       const userRef = doc(db, "users", userId);
@@ -44,6 +45,26 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
       });
       alert("Bilduppladdningar och Antal Bakgrunder uppdaterades");
     }
+  };
+
+  // Approve the user (set isApproved: true)
+  const handleApprove = async () => {
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, { isApproved: true });
+    alert("Användaren har godkänts.");
+    onApprove(userId);
+  };
+
+  // Deny the user (set isApproved: false) Also reset there limits
+  const handleDeny = async () => {
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      isApproved: false,
+      backgroundLimit: 0,
+      uploadLimit: 0,
+    });
+    alert("Användaren har nekats.");
+    onDeny(userId);
   };
 
   if (!user) return null;
@@ -56,7 +77,8 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
           <strong>E-post:</strong> {user.email}
         </p>
         <p>
-          <strong>Status:</strong> {user.status}
+          <strong>Status:</strong>{" "}
+          {user.isApproved ? "Godkänd" : "Inte godkänd"}
         </p>
         <div className="mt-4">
           <Label htmlFor="uploadLimit">Bilduppladdningar</Label>
@@ -81,13 +103,16 @@ const UserDetailsModal: React.FC<UserDetailsModalProps> = ({
           <Button variant="secondary" onClick={onClose}>
             Stäng
           </Button>
-          <Button variant="destructive" onClick={() => onDeny(userId)}>
+          {user.isApproved && (
+            <Button variant="destructive" onClick={handleDeny}>
+              Neka
+            </Button>
+          )}
+          <Button variant="destructive" onClick={handleDeny}>
             Neka
           </Button>
           {/* Hide "Godkänn" button if the user is already approved */}
-          {user.status !== "approved" && (
-            <Button onClick={() => onApprove(userId)}>Godkänn</Button>
-          )}
+          {!user.isApproved && <Button onClick={handleApprove}>Godkänn</Button>}
           <Button onClick={handleUpdate}>Uppdatera</Button>
         </div>
       </div>
