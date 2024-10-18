@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import RequireAuth from "@/components/RequireAuth";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Register from "./pages/Register";
@@ -21,15 +22,80 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/register/:linkId" element={<Register />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/create-folder" element={<CreateFolder />} />
-          <Route path="/folder/:folderId" element={<FolderPage />} />
-          <Route path="/select-backgrounds" element={<SelectBackgrounds />} />
+
+          {/* Protected Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <RequireAuth>
+                <Dashboard />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <RequireAuth>
+                <Register />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/register/:linkId"
+            element={
+              <RequireAuth>
+                <Register />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/gallery"
+            element={
+              <RequireAuth>
+                <Gallery />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <RequireAuth>
+                <Admin />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <RequireAuth>
+                <Profile />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/create-folder"
+            element={
+              <RequireAuth>
+                <CreateFolder />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/folder/:folderId"
+            element={
+              <RequireAuth>
+                <FolderPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/select-backgrounds"
+            element={
+              <RequireAuth>
+                <SelectBackgrounds />
+              </RequireAuth>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
