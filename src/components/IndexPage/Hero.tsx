@@ -24,17 +24,17 @@ const Hero = () => {
           <FeatureCard
             title="Automatisk Bakgrundsborttagning"
             description="Ladda upp en bild så tar vi bort bakgrunden automatiskt."
-            imageSrc="/public/assets/remove-background.png"
+            imageSrc="/assets/remove-background.png"
           />
           <FeatureCard
             title="Förbättra Bildkvalitet"
             description="Använd AI för att automatiskt förbättra bildens upplösning och skärpa."
-            imageSrc="/public/assets/improve-quality.png"
+            imageSrc="/assets/improve-quality.png"
           />
           <FeatureCard
             title="Anpassade Bakgrunder"
             description="Välj från ett urval av professionella bakgrunder som passar ditt varumärke."
-            imageSrc="/public/assets/select-background.png"
+            imageSrc="/assets/select-background.png"
           />
         </div>
       </div>
