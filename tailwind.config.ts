@@ -19,44 +19,45 @@ export default {
     },
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: "hsl(210, 16%, 82%)", // Soft gray for borders
+        input: "hsl(220, 14%, 96%)",  // Light background for input
+        ring: "hsl(220, 14%, 92%)",   // Subtle ring highlight
+        background: "hsl(210, 17%, 98%)",  // Very light background
+        foreground: "hsl(220, 15%, 15%)",  // Dark foreground text
+
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "hsl(218, 77%, 60%)",       // Soft modern blue
+          foreground: "hsl(0, 0%, 100%)",      // White for contrast
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "hsl(217, 19%, 45%)",       // Neutral mid-gray
+          foreground: "hsl(0, 0%, 100%)",      // White for contrast
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "hsl(354, 70%, 54%)",       // Softer red for warnings
+          foreground: "hsl(0, 0%, 100%)",      // White text on red background
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "hsl(210, 16%, 82%)",       // Light muted gray
+          foreground: "hsl(0, 0%, 10%)",       // Darker text on muted
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "hsl(171, 75%, 41%)",       // Bright teal for accents
+          foreground: "hsl(0, 0%, 100%)",      // White on teal accent
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "hsl(0, 0%, 98%)",          // Light popover background
+          foreground: "hsl(220, 15%, 15%)",    // Dark popover text
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "hsl(0, 0%, 100%)",         // White card background
+          foreground: "hsl(220, 15%, 15%)",    // Dark card text
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "12px",                 // Slightly rounded for modern feel
+        md: "8px",
+        sm: "6px",
       },
       keyframes: {
         "accordion-down": {

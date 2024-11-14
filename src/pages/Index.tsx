@@ -1,104 +1,69 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import LoginForm from "@/components/LoginForm";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "@/lib/firebase";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, Camera, Image, Palette } from "lucide-react";
+import About from "@/components/IndexPage/About";
+import SiteFooter from "@/components/IndexPage/Footer";
+import Hero from "@/components/IndexPage/Hero";
+import Contact from "@/components/IndexPage/Contact";
+import HowToUse from "@/components/IndexPage/HowToUse";
 
 const Index = () => {
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
 
+  const scrollToContact = () => {
+    const contactSection = document.getElementById("contact");
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-white">
-      <header className="bg-blue-600 text-white p-6 shadow-md">
+    <div className="flex flex-col min-h-screen">
+      <header className="bg-white text-gray-800 shadow-md p-4 sticky top-0 z-10">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-3xl text-white font-bold tracking-wide">
-            Bilappen
+          <h1 className="text-2xl font-semibold tracking-wide text-blue-600">
+            Bilappen 🚗✨
           </h1>
-          {user && (
-            <Button variant="outline" onClick={() => navigate("/dashboard")}>
-              Gå till Dashboard
-              <ArrowRight className="ml-2 h-4 w-4" />
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              onClick={scrollToContact}
+              className="bg-blue-500 text-white hover:bg-blue-600 transition"
+            >
+              Kontakta oss
             </Button>
-          )}
-        </div>
-      </header>
-      <main className="container mx-auto mt-12 p-4">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div>
-            <h2 className="text-4xl font-bold mb-6 text-blue-800 leading-tight">
-              Förvandla dina bilbilder med enkelhet
-            </h2>
-            <p className="text-lg mb-8 text-gray-700 leading-relaxed">
-              Vårt avancerade bildverktyg hjälper bilhandlare att snabbt
-              förbättra sina produktbilder och sticka ut på marknaden med
-              högkvalitativa visuella presentationer.
-            </p>
-            {!user && (
-              <Card className="w-full max-w-md shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-xl font-semibold">
-                    Logga in för att börja
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <LoginForm />
-                </CardContent>
-              </Card>
+            {user ? (
+              <Button
+                variant="outline"
+                onClick={() => navigate("/dashboard")}
+                className="text-blue-500 border-blue-500 hover:bg-blue-500 hover:text-white transition"
+              >
+                Gå till Dashboard
+              </Button>
+            ) : (
+              <button
+                onClick={() => navigate("/login")}
+                className="text-blue-500 text-sm hover:underline"
+              >
+                Logga in
+              </button>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-6">
-            <LandingFeature
-              icon={<Camera className="h-8 w-8 text-blue-500 mb-2" />}
-              title="Ladda upp bilder"
-              description="Enkelt gränssnitt för att ladda upp dina bilbilder."
-            />
-            <LandingFeature
-              icon={<Image className="h-8 w-8 text-blue-500 mb-2" />}
-              title="Ta bort bakgrund"
-              description="Automatisk borttagning av bakgrunden från dina bilder."
-            />
-            <LandingFeature
-              icon={<Palette className="h-8 w-8 text-blue-500 mb-2" />}
-              title="Välj bakgrund"
-              description="Stort urval av professionella bakgrunder att välja mellan."
-            />
-            <LandingFeature
-              icon={<Image className="h-8 w-8 text-blue-500 mb-2" />}
-              title="Förbättra kvalitet"
-              description="Automatisk förbättring av bildkvaliteten för bästa resultat."
-            />
-          </div>
         </div>
+      </header>
+      <main className="flex-grow">
+        <Hero />
+        <HowToUse />
+        <About />
+        <section id="contact">
+          <Contact />
+        </section>
       </main>
+      <SiteFooter />
     </div>
-  );
-};
-
-interface LandingFeatureProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}
-
-const LandingFeature: React.FC<LandingFeatureProps> = ({
-  icon,
-  title,
-  description,
-}) => {
-  return (
-    <Card className="transform hover:scale-105 transition-transform duration-300 ease-in-out shadow-md">
-      <CardHeader>
-        {icon}
-        <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-gray-600">{description}</p>
-      </CardContent>
-    </Card>
   );
 };
 
