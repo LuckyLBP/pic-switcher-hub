@@ -17,7 +17,6 @@ const LoginForm = () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
 
-      // Redirect to the page the user was trying to access or dashboard
       const from = (location.state as any)?.from?.pathname || "/dashboard";
       navigate(from, { replace: true });
     } catch (err) {
@@ -28,30 +27,58 @@ const LoginForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Input
-          type="email"
-          placeholder="E-postadress"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">
+          Logga in
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
+              E-postadress
+            </label>
+            <Input
+              type="email"
+              id="email"
+              placeholder="E-postadress"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Lösenord
+            </label>
+            <Input
+              type="password"
+              id="password"
+              placeholder="Lösenord"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          {error && (
+            <p className="text-sm text-red-500 text-center">{error}</p>
+          )}
+          <Button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition duration-300"
+          >
+            Logga in
+          </Button>
+        </form>
       </div>
-      <div>
-        <Input
-          type="password"
-          placeholder="Lösenord"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-      {error && <p className="text-red-500">{error}</p>}
-      <Button type="submit" className="w-full">
-        Logga in
-      </Button>
-    </form>
+    </div>
   );
 };
 

@@ -12,6 +12,8 @@ import Profile from "./pages/Profile";
 import CreateFolder from "./pages/CreateFolder";
 import FolderPage from "./pages/FolderPage";
 import SelectBackgrounds from "./pages/SelectBackgrounds";
+import LoginForm from "./components/LoginForm";
+import ManageBackgrounds from "./pages/ManageBackgrounds";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +24,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/login" element={<LoginForm />} />
 
           {/* Protected Routes */}
           <Route
@@ -96,6 +99,14 @@ const App = () => (
               </RequireAuth>
             }
           />
+          <Route
+            path="/manage-backgrounds"
+            element={
+              <RequireAuth>
+                <ManageBackgrounds />
+              </RequireAuth>
+            }
+            />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

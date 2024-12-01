@@ -14,24 +14,34 @@ const Dashboard = () => {
   const [remainingImages, setRemainingImages] = useState(0);
   const [usedBackgrounds, setUsedBackgrounds] = useState(0);
   const [isApproved, setIsApproved] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (user) {
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
-          setRemainingImages(
-            userData.uploadLimit - (userData.uploadCount || 0)
-          );
-          setUsedBackgrounds(userData.selectedBackgrounds?.length || 0);
-          setIsApproved(userData.isApproved || false);
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            setRemainingImages(
+              userData.uploadLimit - (userData.uploadCount || 0)
+            );
+            setUsedBackgrounds(userData.selectedBackgrounds?.length || 0);
+            setIsApproved(userData.isApproved || false);
+
+            // Check if the user's role is admin
+            setIsAdmin(userData.role === "admin");
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       }
     };
+
     fetchUserData();
   }, [user]);
 
@@ -99,19 +109,25 @@ const Dashboard = () => {
                 Skapa en ny mapp för att organisera dina bilar.
               </p>
             </div>
+            <div
+              className={`bg-white shadow rounded-lg p-6 ${
+                isAdmin ? "cursor-pointer transform hover:scale-105 transition-transform duration-200" : ""
+              }`}
+              onClick={() => isAdmin && navigate("/select-backgrounds")}
+            >
+              <div className="flex items-center mb-4">
+                <Squares2X2Icon className="h-6 w-6 text-primary mr-2" />
+                <h2 className="text-xl font-semibold">Antal bakgrunder</h2>
+              </div>
+              <p className="text-4xl font-bold">{usedBackgrounds}</p>
+              {isAdmin && <p className="text-gray-500 text-sm">Klicka för att hantera bakgrunder</p>}
+            </div>
             <div className="bg-white shadow rounded-lg p-6">
               <div className="flex items-center mb-4">
                 <Star className="h-6 w-6 text-primary mr-2" />
                 <h2 className="text-xl font-semibold">Antal poäng kvar</h2>
               </div>
               <p className="text-4xl font-bold">{remainingImages}</p>
-            </div>
-            <div className="bg-white shadow rounded-lg p-6">
-              <div className="flex items-center mb-4">
-                <Squares2X2Icon className="h-6 w-6 text-primary mr-2" />
-                <h2 className="text-xl font-semibold">Antal bakgrunder</h2>
-              </div>
-              <p className="text-4xl font-bold">{usedBackgrounds}</p>
             </div>
           </div>
           <CarFolderList />
